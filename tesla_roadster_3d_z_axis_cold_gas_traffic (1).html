@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tesla Roadster 3D: Z-Axis Cold-Gas Traffic</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b0e17;
+      font-family: 'Inter', sans-serif;
+      color: #f8fafc;
+      touch-action: none;
+    }
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hud-glass {
+      background: rgba(11, 15, 25, 0.76);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+    .btn-control {
+      transition: transform 0.08s ease, background-color 0.12s ease, box-shadow 0.12s ease;
+    }
+    .btn-control:active, .btn-control.active-key {
+      transform: scale(0.93);
+      background-color: rgba(56, 189, 248, 0.35) !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
+    }
+    .space-switch-on {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.38), rgba(37, 99, 235, 0.48));
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
+    }
+    .space-switch-off {
+      background: rgba(30, 41, 59, 0.78);
+      border-color: rgba(148, 163, 184, 0.3);
+    }
+    .thrust-btn-active {
+      background: linear-gradient(135deg, #ef4444, #f97316) !important;
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.65) !important;
+      transform: scale(0.95);
+    }
+    .speed-sign-ground {
+      background: #f8fafc;
+      color: #0f172a;
+      border: 2px solid #cbd5e1;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .speed-sign-zaxis {
+      background: rgba(15, 23, 42, 0.85);
+      color: #f8fafc;
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.35);
+    }
+  </style>
+</head>
+<body class="relative w-full h-full flex flex-col justify-between overflow-hidden">
+
+  <!-- 3D WebGL Canvas Container -->
+  <canvas id="gameCanvas" class="absolute inset-0 w-full h-full z-0 block"></canvas>
+
+  <!-- TESLA Z-AXIS TOP STATUS BAR (Matches z-axis-traffic.grok.me UI) -->
+  <header class="relative z-10 w-full pointer-events-none">
+    <!-- Top Thin Bar: PRNDZ Gear Strip + Easy/Hard Level + Score -->
+    <div class="w-full px-3 sm:px-6 py-2 flex items-center justify-between border-b border-slate-700/60 bg-slate-950/40 backdrop-blur-sm pointer-events-auto">
+      
+      <!-- Left: P R N D Z Gear Selector + Steering Icon -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <div class="flex items-center gap-2 sm:gap-2.5 text-xs sm:text-sm font-bold tracking-widest">
+          <span class="text-slate-600">P</span>
+          <span class="text-slate-600">R</span>
+          <span class="text-slate-600">N</span>
+          <span id="gearD" class="text-slate-400 transition-colors">D</span>
+          <span id="gearZ" class="text-sky-400 font-black drop-shadow-[0_0_8px_rgba(56,189,248,0.8)] transition-colors">Z</span>
+          <svg class="w-4 h-4 text-slate-400 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="2.5"/>
+            <path d="M12 5.5v4M5.8 14.5l3.8-1.5M18.2 14.5l-3.8-1.5"/>
+          </svg>
+        </div>
+
+        <!-- Easy / Hard Difficulty Selector -->
+        <div class="flex items-center bg-slate-900/90 p-0.5 rounded-lg border border-slate-700/70" role="group" aria-label="Difficulty Level">
+          <button id="btnEasy" type="button" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all bg-emerald-500/25 text-emerald-300 border border-emerald-400/50">
+            EASY
+          </button>
+          <button id="btnHard" type="button" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all text-slate-400 hover:text-white border border-transparent">
+            HARD
+          </button>
+        </div>
+
+        <!-- Status Pill -->
+        <div id="flightStateBanner" class="hidden md:flex items-center gap-2 text-[11px] text-slate-300 bg-slate-900/70 px-2.5 py-0.5 rounded-full border border-slate-700/60">
+          <strong id="statusLabel" class="text-sky-400">Z-AXIS FLIGHT</strong>
+          <span class="text-slate-500">|</span>
+          <span class="text-slate-400">Hard Ground Touch = Safe &amp; Refills 20s N₂</span>
+        </div>
+      </div>
+
+      <!-- Right: Audio + Help + Top-Right Score -->
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-1.5 text-xs text-amber-400 font-bold">
+          <span>FLIPS:</span>
+          <span id="flipsText" class="font-mono-tech">0</span>
+        </div>
+
+        <button id="btnAudio" type="button" title="Toggle Thruster Sound" class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600/50 transition">
+          <svg id="iconSoundOn" class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/>
+          </svg>
+          <svg id="iconSoundOff" class="w-3.5 h-3.5 text-slate-400 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>
+          </svg>
+        </button>
+
+        <button id="btnRules" type="button" title="Flight Manual & Controls" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-[11px] font-bold text-slate-200 border border-slate-600/50 transition">
+          ?
+        </button>
+
+        <div id="scoreText" class="font-mono-tech text-lg sm:text-2xl font-extrabold tracking-tight text-white min-w-[60px] text-right">
+          0
+        </div>
+      </div>
+    </div>
+
+    <!-- Second Row: Left (HOLD + Headlight + Vertical COLD GAS Gauge) & Right (Speedometer + Z-AXIS + ALT + SPEED LIMIT Sign) -->
+    <div class="w-full px-3 sm:px-6 pt-3 flex items-start justify-between pointer-events-none">
+      
+      <!-- Left Tesla Cluster: HOLD, Auto High-Beam, Vertical COLD GAS 20s Gauge -->
+      <div class="flex flex-col items-center gap-3">
+        <!-- (H) HOLD Icon -->
+        <div class="flex flex-col items-center opacity-45">
+          <div class="w-8 h-8 rounded-full border-2 border-slate-400 flex items-center justify-center text-xs font-extrabold text-slate-300">
+            H
+          </div>
+          <span class="text-[9px] font-bold tracking-widest text-slate-400 mt-0.5">HOLD</span>
+        </div>
+
+        <!-- Headlight Icon -->
+        <div class="text-slate-200 opacity-85" title="Laser Headlights Active">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 5c5 0 9 3.1 9 7s-4 7-9 7V5z"/>
+            <path d="M3 7h5M3 10.5h5M3 14h5M3 17.5h5"/>
+          </svg>
+        </div>
+
+        <!-- Vertical COLD GAS Tube Gauge (Exact match to video left bar + 20.0s timer) -->
+        <div class="flex flex-col items-center mt-1">
+          <div class="relative w-3.5 h-32 sm:h-40 rounded-full bg-slate-900/90 border border-slate-600/80 overflow-hidden flex flex-col justify-end p-0.5 shadow-inner">
+            <div id="coldGasBar" class="w-full rounded-full bg-sky-400 shadow-[0_0_12px_#38bdf8] transition-all duration-75" style="height: 100%;"></div>
+          </div>
+          <span id="coldGasTimerText" class="font-mono-tech text-[11px] font-extrabold text-sky-300 mt-1.5">20.0s</span>
+          <div class="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 leading-tight text-center mt-0.5">
+            COLD<br/>GAS
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Dynamic Notification Toast (Speeding Ticket / No Speed Limit in Z-Axis / Trick Combo) -->
+      <div id="zAxisToast" class="transition-all duration-300 transform translate-y-0 opacity-100 max-w-sm bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl px-4 py-2.5 flex items-center gap-3 shadow-2xl">
+        <div id="toastSignBadge" class="w-9 h-11 rounded-md border border-slate-500 flex flex-col items-center justify-center text-[8px] font-extrabold leading-none text-slate-200 shrink-0">
+          <span>SPEED</span>
+          <span>LIMIT</span>
+          <span id="toastSignValue" class="text-sm font-black mt-0.5">∞</span>
+        </div>
+        <div class="text-left">
+          <div id="toastHeadline" class="text-xs font-extrabold tracking-wide text-white uppercase">
+            NO SPEED LIMIT IN THE Z-AXIS
+          </div>
+          <div id="toastSubtext" class="text-[11px] text-slate-400">
+            20s continuous cold-gas flight. Touch ground safely to recharge.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Tesla Speedometer & Speed Limit Sign -->
+      <div class="flex items-start gap-3 sm:gap-4">
+        <div class="text-right">
+          <div id="speedText" class="font-mono-tech text-4xl sm:text-5xl font-extrabold tracking-tighter text-white leading-none">
+            65
+          </div>
+          <div id="axisModeText" class="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-slate-200 mt-1">
+            Z-AXIS
+          </div>
+          <div id="altText" class="font-mono-tech text-[11px] font-bold text-sky-400">
+            ALT 28 m
+          </div>
+        </div>
+
+        <!-- Speed Limit Sign (Switches between 35 on Ground and ∞ in Z-Axis) -->
+        <div id="speedLimitBox" class="speed-sign-zaxis rounded-xl w-14 h-18 sm:w-16 sm:h-20 px-2 py-1.5 flex flex-col items-center justify-center text-center transition-all">
+          <span class="text-[9px] sm:text-[10px] font-extrabold uppercase leading-tight tracking-wider">SPEED<br/>LIMIT</span>
+          <span id="speedLimitVal" class="text-2xl sm:text-3xl font-black leading-none mt-1">∞</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- CENTER OVERLAY MODAL (START MENU & Z-AXIS GAME OVER SCREEN) -->
+  <main class="relative z-20 flex-1 flex items-center justify-center px-4 pointer-events-none">
+    
+    <div id="gameOverlay" class="hidden hud-glass rounded-3xl p-4 sm:p-6 max-w-md w-full max-h-[80vh] overflow-y-auto pointer-events-auto shadow-2xl border border-slate-700/80 text-center transition-all">
+      <div id="overlayBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest bg-sky-500/20 text-sky-300 border border-sky-400/30 mb-2">
+        3D Z-AXIS COLD-GAS TRAFFIC
+      </div>
+      <h1 id="overlayTitle" class="text-3xl sm:text-4xl font-black tracking-tight text-white mb-1">
+        TESLA ROADSTER 3D
+      </h1>
+      <p id="overlaySubtitle" class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+        Fly into the Z-Axis over highway traffic using 4-corner SpaceX cold-gas thrusters, pull 360° mid-air flips, and dodge the swarm of flying Air Roadsters!
+      </p>
+
+      <!-- Post-Game Telemetry Stats (Matches z-axis-traffic.grok.me Game Over Screen) -->
+      <div id="postGameStats" class="hidden grid-cols-4 gap-2 bg-slate-900/90 rounded-2xl p-3.5 border border-slate-700/80 mb-4">
+        <div>
+          <div class="text-[10px] uppercase text-slate-400 font-semibold">Score</div>
+          <div id="finalScoreVal" class="font-mono-tech text-base sm:text-lg font-extrabold text-white">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase text-slate-400 font-semibold">Tricks / Flips</div>
+          <div id="finalFlipsVal" class="font-mono-tech text-base sm:text-lg font-extrabold text-amber-400">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase text-slate-400 font-semibold">Near Misses</div>
+          <div id="finalDodgedVal" class="font-mono-tech text-base sm:text-lg font-extrabold text-emerald-400">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase text-slate-400 font-semibold">Best Score</div>
+          <div id="bestScoreVal" class="font-mono-tech text-base sm:text-lg font-extrabold text-sky-400">0</div>
+        </div>
+      </div>
+
+      <!-- Compact Rules Highlights -->
+      <div class="grid grid-cols-2 gap-2 text-left mb-4 text-xs">
+        <div class="bg-slate-900/75 p-2.5 rounded-xl border border-slate-800">
+          <div class="font-bold text-sky-300">⏱️ 20s Cold Gas Tank</div>
+          <p class="text-slate-400 text-[11px] leading-snug mt-0.5">
+            Flies continuously for <strong>20 seconds</strong>, then descends to the highway.
+          </p>
+        </div>
+        <div class="bg-slate-900/75 p-2.5 rounded-xl border border-slate-800">
+          <div class="font-bold text-emerald-300">🛬 Hard Ground Touch = Safe</div>
+          <p class="text-slate-400 text-[11px] leading-snug mt-0.5">
+            Slamming onto the road <strong>never eliminates you</strong> &amp; refills cold gas!
+          </p>
+        </div>
+        <div class="bg-slate-900/75 p-2.5 rounded-xl border border-slate-800">
+          <div class="font-bold text-rose-400">🚗 Air Roadster = Eliminate</div>
+          <p class="text-slate-400 text-[11px] leading-snug mt-0.5">
+            Touching another flying or driving Roadster eliminates you immediately.
+          </p>
+        </div>
+        <div class="bg-slate-900/75 p-2.5 rounded-xl border border-slate-800">
+          <div class="font-bold text-amber-300">🕹️ Joystick + Space Switch</div>
+          <p class="text-slate-400 text-[11px] leading-snug mt-0.5">
+            Use <strong>Joystick</strong> or <strong>WASD</strong> + toggle <strong>SPACE Switch</strong>!
+          </p>
+        </div>
+      </div>
+
+      <!-- Easy / Hard Difficulty Selector inside Modal -->
+      <div class="flex items-center justify-center gap-2.5 mb-4">
+        <button id="modalBtnEasy" type="button" class="flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all bg-emerald-500/25 text-emerald-200 border-emerald-400">
+          🟢 EASY LEVEL (Chill Air Traffic)
+        </button>
+        <button id="modalBtnHard" type="button" class="flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all bg-slate-800/80 text-slate-300 border-slate-700 hover:border-rose-400">
+          🔥 HARD LEVEL (Dense Roadster Swarm)
+        </button>
+      </div>
+
+      <button id="btnLaunchGame" type="button" class="w-full py-3.5 rounded-full font-black text-sm uppercase tracking-wider bg-white hover:bg-slate-100 text-slate-950 shadow-xl transition transform active:scale-95">
+        IGNITE COLD-GAS THRUSTERS &amp; LAUNCH
+      </button>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM COCKPIT CONTROLS: MOBILE VIRTUAL JOYSTICK + ON-SCREEN WASD + SPACE SWITCH + THRUST + 360 FLIP -->
+  <footer class="relative z-10 w-full px-2.5 pb-2.5 sm:px-6 sm:pb-4 pointer-events-none">
+    <div class="max-w-7xl mx-auto flex items-end justify-between gap-2">
+      
+      <!-- Left Controls: Mobile Virtual Joystick + On-Screen WASD Pad -->
+      <div class="flex items-end gap-2.5 pointer-events-auto">
+        
+        <!-- Draggable Virtual Joystick -->
+        <div class="hud-glass rounded-2xl p-2 flex flex-col items-center shadow-lg">
+          <span class="text-[9px] font-bold uppercase tracking-wider text-sky-300 mb-1">JOYSTICK</span>
+          <div id="joystickZone" class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-slate-900/90 border-2 border-sky-500/40 flex items-center justify-center shadow-inner">
+            <div class="absolute inset-x-3 h-px bg-slate-700/60 pointer-events-none"></div>
+            <div class="absolute inset-y-3 w-px bg-slate-700/60 pointer-events-none"></div>
+            <div class="absolute top-1 text-[8px] font-bold text-slate-400 pointer-events-none">PITCH UP</div>
+            <div class="absolute bottom-1 text-[8px] font-bold text-slate-400 pointer-events-none">DIVE</div>
+            <div class="absolute left-1.5 text-[8px] font-bold text-slate-400 pointer-events-none">LEFT</div>
+            <div class="absolute right-1.5 text-[8px] font-bold text-slate-400 pointer-events-none">RIGHT</div>
+            <div id="joystickKnob" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 border-2 border-white/80 shadow-lg shadow-sky-500/50 pointer-events-none transition-transform duration-75" style="transform: translate(0px, 0px);"></div>
+          </div>
+        </div>
+
+        <!-- On-Screen WASD Control Pad -->
+        <div class="hud-glass rounded-2xl p-2 flex flex-col items-center shadow-lg">
+          <span class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mb-1">WASD CONTROL</span>
+          <div class="grid grid-cols-3 gap-1 w-[114px] sm:w-[132px]">
+            <div></div>
+            <button id="keyW" type="button" data-key="KeyW" class="btn-control h-9 sm:h-10 rounded-lg bg-slate-800/90 border border-slate-600/80 flex flex-col items-center justify-center text-white font-bold text-xs">
+              <span>W</span>
+              <span class="text-[8px] text-sky-300 font-normal leading-none">UP</span>
+            </button>
+            <div></div>
+            <button id="keyA" type="button" data-key="KeyA" class="btn-control h-9 sm:h-10 rounded-lg bg-slate-800/90 border border-slate-600/80 flex flex-col items-center justify-center text-white font-bold text-xs">
+              <span>A</span>
+              <span class="text-[8px] text-amber-300 font-normal leading-none">FLIP L</span>
+            </button>
+            <button id="keyS" type="button" data-key="KeyS" class="btn-control h-9 sm:h-10 rounded-lg bg-slate-800/90 border border-slate-600/80 flex flex-col items-center justify-center text-white font-bold text-xs">
+              <span>S</span>
+              <span class="text-[8px] text-slate-300 font-normal leading-none">DOWN</span>
+            </button>
+            <button id="keyD" type="button" data-key="KeyD" class="btn-control h-9 sm:h-10 rounded-lg bg-slate-800/90 border border-slate-600/80 flex flex-col items-center justify-center text-white font-bold text-xs">
+              <span>D</span>
+              <span class="text-[8px] text-amber-300 font-normal leading-none">FLIP R</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Controls: SPACE SWITCH (Toggles Z-Axis Thrusters ON/OFF) + ROCKET THRUST + 360 FLIP -->
+      <div class="hud-glass rounded-2xl p-2 flex items-center gap-2 sm:gap-3 pointer-events-auto shadow-lg">
+        
+        <!-- SPACE Button as a Switch -->
+        <button id="btnSpaceSwitch" type="button" class="space-switch-on rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 border-2 flex flex-col items-center justify-center min-w-[112px] sm:min-w-[140px] transition-all">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span id="spaceSwitchLed" class="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]"></span>
+            <span class="text-[10px] font-black uppercase tracking-wider text-sky-200">SPACE SWITCH</span>
+          </div>
+          <div id="spaceSwitchStateText" class="font-mono-tech text-xs sm:text-sm font-extrabold text-white">
+            THRUSTER: ON
+          </div>
+          <span class="text-[9px] text-slate-300 mt-0.5">Tap or [Spacebar]</span>
+        </button>
+
+        <!-- Dedicated ROCKET THRUST Boost Button -->
+        <button id="btnRocketThrust" type="button" class="rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-br from-rose-600/90 to-orange-600/90 hover:from-rose-500 hover:to-orange-500 border-2 border-rose-400/70 flex flex-col items-center justify-center min-w-[86px] sm:min-w-[105px] shadow-lg transition-all">
+          <span class="text-[10px] font-black uppercase tracking-wider text-rose-100">🔥 THRUST</span>
+          <span class="font-mono-tech text-xs sm:text-sm font-extrabold text-white">BOOST</span>
+          <span class="text-[9px] text-rose-100 mt-0.5">Hold [Shift]</span>
+        </button>
+
+        <!-- Quick 360° Barrel Roll / Flip Button -->
+        <button id="btnQuickFlip" type="button" class="rounded-xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 bg-amber-500/25 hover:bg-amber-500/35 border-2 border-amber-400/70 flex flex-col items-center justify-center min-w-[74px] sm:min-w-[90px] shadow-lg transition-all active:scale-95">
+          <span class="text-[10px] font-black uppercase tracking-wider text-amber-200">🔄 360°</span>
+          <span class="font-mono-tech text-xs sm:text-sm font-extrabold text-amber-300">FLIP</span>
+          <span class="text-[9px] text-amber-200/90 mt-0.5">+150 PTS</span>
+        </button>
+
+      </div>
+
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // UI References
+      const canvas = document.getElementById('gameCanvas');
+      const btnEasy = document.getElementById('btnEasy');
+      const btnHard = document.getElementById('btnHard');
+      const modalBtnEasy = document.getElementById('modalBtnEasy');
+      const modalBtnHard = document.getElementById('modalBtnHard');
+      const coldGasTimerText = document.getElementById('coldGasTimerText');
+      const coldGasBar = document.getElementById('coldGasBar');
+      const statusLabel = document.getElementById('statusLabel');
+      const scoreText = document.getElementById('scoreText');
+      const flipsText = document.getElementById('flipsText');
+      const speedText = document.getElementById('speedText');
+      const axisModeText = document.getElementById('axisModeText');
+      const altText = document.getElementById('altText');
+      const speedLimitBox = document.getElementById('speedLimitBox');
+      const speedLimitVal = document.getElementById('speedLimitVal');
+      const gearD = document.getElementById('gearD');
+      const gearZ = document.getElementById('gearZ');
+
+      const zAxisToast = document.getElementById('zAxisToast');
+      const toastSignValue = document.getElementById('toastSignValue');
+      const toastHeadline = document.getElementById('toastHeadline');
+      const toastSubtext = document.getElementById('toastSubtext');
+
+      const btnAudio = document.getElementById('btnAudio');
+      const iconSoundOn = document.getElementById('iconSoundOn');
+      const iconSoundOff = document.getElementById('iconSoundOff');
+      const btnRules = document.getElementById('btnRules');
+
+      const gameOverlay = document.getElementById('gameOverlay');
+      const overlayBadge = document.getElementById('overlayBadge');
+      const overlayTitle = document.getElementById('overlayTitle');
+      const overlaySubtitle = document.getElementById('overlaySubtitle');
+      const postGameStats = document.getElementById('postGameStats');
+      const finalScoreVal = document.getElementById('finalScoreVal');
+      const finalFlipsVal = document.getElementById('finalFlipsVal');
+      const finalDodgedVal = document.getElementById('finalDodgedVal');
+      const bestScoreVal = document.getElementById('bestScoreVal');
+      const btnLaunchGame = document.getElementById('btnLaunchGame');
+
+      const btnSpaceSwitch = document.getElementById('btnSpaceSwitch');
+      const spaceSwitchLed = document.getElementById('spaceSwitchLed');
+      const spaceSwitchStateText = document.getElementById('spaceSwitchStateText');
+      const btnRocketThrust = document.getElementById('btnRocketThrust');
+      const btnQuickFlip = document.getElementById('btnQuickFlip');
+
+      const joystickZone = document.getElementById('joystickZone');
+      const joystickKnob = document.getElementById('joystickKnob');
+      const keyButtons = {
+        KeyW: document.getElementById('keyW'),
+        KeyA: document.getElementById('keyA'),
+        KeyS: document.getElementById('keyS'),
+        KeyD: document.getElementById('keyD')
+      };
+
+      // Web Audio API Synthesized Sound Effects
+      let audioCtx = null;
+      let soundMuted = false;
+
+      function initAudio() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      function playSound(type) {
+        if (soundMuted || !audioCtx) return;
+        try {
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          if (type === 'switch') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(player.spaceSwitchOn ? 440 : 300, now);
+            osc.frequency.exponentialRampToValueAtTime(player.spaceSwitchOn ? 880 : 180, now + 0.1);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+          } else if (type === 'flip') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(360, now);
+            osc.frequency.exponentialRampToValueAtTime(1040, now + 0.25);
+            gain.gain.setValueAtTime(0.16, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+            osc.start(now);
+            osc.stop(now + 0.26);
+          } else if (type === 'orb') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(580, now);
+            osc.frequency.exponentialRampToValueAtTime(1180, now + 0.16);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
+            osc.start(now);
+            osc.stop(now + 0.17);
+          } else if (type === 'bounce') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(65, now + 0.16);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
+            osc.start(now);
+            osc.stop(now + 0.17);
+          } else if (type === 'eliminate') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(210, now);
+            osc.frequency.exponentialRampToValueAtTime(38, now + 0.48);
+            gain.gain.setValueAtTime(0.26, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+          }
+        } catch (e) {}
+      }
+
+      // Game Constants & Difficulty Settings
+      const MAX_COLD_GAS_SECONDS = 20.0;
+      let difficulty = 'easy';
+      const DIFFICULTY_CONFIG = {
+        easy: {
+          airRoadsterCount: 16,
+          groundCarCount: 8,
+          airSpeedMin: 32,
+          airSpeedMax: 58,
+          refillRatePerSec: 8.5, // Refills 20s tank quickly on ground
+          scoreMult: 1.0
+        },
+        hard: {
+          airRoadsterCount: 30,
+          groundCarCount: 14,
+          airSpeedMin: 50,
+          airSpeedMax: 92,
+          refillRatePerSec: 6.5,
+          scoreMult: 1.8
+        }
+      };
+
+      let gameState = 'menu'; // 'menu', 'playing', 'eliminated'
+      let score = 0;
+      let bestScore = 0;
+      try {
+        bestScore = parseInt(localStorage.getItem('roadster3d_best') || '0', 10) || 0;
+      } catch (e) {}
+
+      let flipsCount = 0;
+      let nearMissesCount = 0;
+      let airtimeSeconds = 0;
+      let speedTicketCooldown = 0;
+
+      // Controls State
+      const keys = {
+        KeyW: false,
+        KeyA: false,
+        KeyS: false,
+        KeyD: false,
+        ShiftLeft: false,
+        ShiftRight: false
+      };
+      let thrustButtonHeld = false;
+      let joystickVector = { x: 0, y: 0, active: false };
+
+      // Player State in 3D World
+      const player = {
+        x: 0,
+        y: 8.5,       // Altitude (0 = Ground Road, up to 48m in Z-Axis sky)
+        z: 0,
+        vx: 0,
+        vy: 0,
+        forwardSpeed: 64,
+        pitch: 0,
+        roll: 0,
+        yaw: 0,
+        flipMode: null, // null, 'rollLeft', 'rollRight', 'frontFlip', 'backFlip'
+        flipProgress: 0,
+        coldGasRemaining: MAX_COLD_GAS_SECONDS,
+        coldGasDepletedLock: false,
+        spaceSwitchOn: true, // Space button acts as a switch!
+        onGround: false,
+        thrusterActive: true,
+        boosting: false
+      };
+
+      // ==========================================
+      // THREE.JS 3D SCENE SETUP (z-axis-traffic style)
+      // ==========================================
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      const scene = new THREE.Scene();
+      const skyColor = new THREE.Color(0x0b0e17);
+      scene.background = skyColor;
+      scene.fog = new THREE.FogExp2(0x0b0e17, 0.0042);
+
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.5, 450);
+      camera.position.set(0, 12, 18);
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.72);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+      dirLight.position.set(30, 80, 50);
+      scene.add(dirLight);
+
+      const bottomBounceLight = new THREE.DirectionalLight(0x38bdf8, 0.35);
+      bottomBounceLight.position.set(0, -30, 10);
+      scene.add(bottomBounceLight);
+
+      // Shared Materials
+      const silverBodyMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.32, metalness: 0.55 });
+      const redBodyMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.3, metalness: 0.6 });
+      const darkBodyMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4, metalness: 0.5 });
+      const cabinGlassMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.15, metalness: 0.85 });
+      const tailLightMat = new THREE.MeshBasicMaterial({ color: 0xfb7185 });
+      const headLightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.7 });
+      const thrusterPlumeMat = new THREE.MeshBasicMaterial({
+        color: 0xe0f2fe,
+        transparent: true,
+        opacity: 0.9
+      });
+      const thrusterCoreMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.65
+      });
+      const boostPlumeMat = new THREE.MeshBasicMaterial({
+        color: 0xf97316,
+        transparent: true,
+        opacity: 0.92
+      });
+
+      // Build a 3D Tesla Roadster / Cybercab Mesh with 4 Corner Downward Cold-Gas Thrusters
+      function createRoadsterMesh(options = {}) {
+        const { isPlayer = false, hasThrusters = true, paintMat = silverBodyMat } = options;
+        const root = new THREE.Group();
+        const bodyGroup = new THREE.Group();
+        root.add(bodyGroup);
+
+        // Lower Sleek Wedge Chassis
+        const chassisGeo = new THREE.BoxGeometry(2.6, 0.68, 4.9);
+        const chassis = new THREE.Mesh(chassisGeo, paintMat);
+        chassis.position.y = 0.45;
+        bodyGroup.add(chassis);
+
+        // Sloped Aerodynamic Cabin / Glass Canopy
+        const canopyGeo = new THREE.BoxGeometry(2.15, 0.52, 2.55);
+        const canopy = new THREE.Mesh(canopyGeo, cabinGlassMat);
+        canopy.position.set(0, 0.92, -0.15);
+        bodyGroup.add(canopy);
+
+        // Rear Glowing Red LED Light Bar (Exact match to video!)
+        const tailGeo = new THREE.BoxGeometry(2.42, 0.12, 0.1);
+        const tailLight = new THREE.Mesh(tailGeo, tailLightMat);
+        tailLight.position.set(0, 0.58, 2.46);
+        bodyGroup.add(tailLight);
+
+        // Front Glowing White LED Laser Headlight Bar
+        const headGeo = new THREE.BoxGeometry(2.38, 0.12, 0.1);
+        const headLight = new THREE.Mesh(headGeo, headLightMat);
+        headLight.position.set(0, 0.48, -2.46);
+        bodyGroup.add(headLight);
+
+        // 4 Aero Wheels
+        const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.3, 14);
+        wheelGeo.rotateZ(Math.PI / 2);
+        const wheelOffsets = [
+          [-1.28, 0.4, -1.55],
+          [1.28, 0.4, -1.55],
+          [-1.28, 0.4, 1.55],
+          [1.28, 0.4, 1.55]
+        ];
+        wheelOffsets.forEach(([wx, wy, wz]) => {
+          const w = new THREE.Mesh(wheelGeo, wheelMat);
+          w.position.set(wx, wy, wz);
+          bodyGroup.add(w);
+        });
+
+        // 4 Corner Downward SpaceX Cold-Gas Thruster Cones (Exact match to video!)
+        const thrusterGroup = new THREE.Group();
+        const coneGeo = new THREE.ConeGeometry(0.32, 3.2, 10);
+        // Flip cone so tip points down and wide glow attaches to car bottom
+        coneGeo.translate(0, -1.6, 0);
+
+        const outerConeGeo = new THREE.ConeGeometry(0.48, 4.2, 10);
+        outerConeGeo.translate(0, -2.1, 0);
+
+        const nozzleCoords = [
+          [-1.05, 0.15, -1.65],
+          [1.05, 0.15, -1.65],
+          [-1.05, 0.15, 1.65],
+          [1.05, 0.15, 1.65]
+        ];
+        const plumeMeshes = [];
+        nozzleCoords.forEach(([nx, ny, nz]) => {
+          const innerJet = new THREE.Mesh(coneGeo, thrusterPlumeMat);
+          innerJet.position.set(nx, ny, nz);
+          const outerJet = new THREE.Mesh(outerConeGeo, thrusterCoreMat);
+          outerJet.position.set(nx, ny, nz);
+          thrusterGroup.add(innerJet);
+          thrusterGroup.add(outerJet);
+          plumeMeshes.push({ innerJet, outerJet });
+        });
+
+        // Rear Horizontal Rocket Thrust Boost Plume (for Player Boost)
+        let rearBoostJet = null;
+        if (isPlayer) {
+          const boostGeo = new THREE.ConeGeometry(0.45, 3.8, 12);
+          boostGeo.rotateX(Math.PI / 2);
+          boostGeo.translate(0, 0.45, 4.3);
+          rearBoostJet = new THREE.Mesh(boostGeo, boostPlumeMat);
+          rearBoostJet.visible = false;
+          bodyGroup.add(rearBoostJet);
+        }
+
+        thrusterGroup.visible = hasThrusters;
+        bodyGroup.add(thrusterGroup);
+
+        return { root, bodyGroup, thrusterGroup, plumeMeshes, rearBoostJet };
+      }
+
+      // Create Player 3D Roadster
+      const playerObj = createRoadsterMesh({ isPlayer: true, hasThrusters: true, paintMat: silverBodyMat });
+      scene.add(playerObj.root);
+
+      // ==========================================
+      // INFINITE 3D HIGHWAY & INTERSECTIONS GRID
+      // ==========================================
+      const roadSegments = [];
+      const SEGMENT_LENGTH = 70;
+      const NUM_SEGMENTS = 7;
+      const ROAD_WIDTH = 24;
+
+      const roadAsphaltMat = new THREE.MeshStandardMaterial({ color: 0x141824, roughness: 0.9 });
+      const groundBlockMat = new THREE.MeshStandardMaterial({ color: 0x0d111a, roughness: 0.95 });
+      const yellowLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+      const whiteLineMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
+      const poleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+      const signalLightMat = new THREE.MeshBasicMaterial({ color: 0xfb923c });
+
+      function createRoadSegment(zIndex) {
+        const seg = new THREE.Group();
+        seg.position.z = -zIndex * SEGMENT_LENGTH;
+
+        // Wide City Block Ground Plane
+        const blockGeo = new THREE.PlaneGeometry(170, SEGMENT_LENGTH - 2);
+        blockGeo.rotateX(-Math.PI / 2);
+        const blockMesh = new THREE.Mesh(blockGeo, groundBlockMat);
+        blockMesh.position.y = -0.05;
+        seg.add(blockMesh);
+
+        // Main 4-Lane Highway Strip
+        const roadGeo = new THREE.PlaneGeometry(ROAD_WIDTH, SEGMENT_LENGTH);
+        roadGeo.rotateX(-Math.PI / 2);
+        const roadMesh = new THREE.Mesh(roadGeo, roadAsphaltMat);
+        roadMesh.position.y = 0.0;
+        seg.add(roadMesh);
+
+        // Double Yellow Center Divider Lines
+        const yellowGeo = new THREE.PlaneGeometry(0.22, SEGMENT_LENGTH);
+        yellowGeo.rotateX(-Math.PI / 2);
+        const yLeft = new THREE.Mesh(yellowGeo, yellowLineMat);
+        yLeft.position.set(-0.22, 0.03, 0);
+        const yRight = new THREE.Mesh(yellowGeo, yellowLineMat);
+        yRight.position.set(0.22, 0.03, 0);
+        seg.add(yLeft, yRight);
+
+        // Solid White Outer Shoulder Lines
+        const edgeGeo = new THREE.PlaneGeometry(0.28, SEGMENT_LENGTH);
+        edgeGeo.rotateX(-Math.PI / 2);
+        const leftEdge = new THREE.Mesh(edgeGeo, whiteLineMat);
+        leftEdge.position.set(-ROAD_WIDTH / 2 + 0.3, 0.03, 0);
+        const rightEdge = new THREE.Mesh(edgeGeo, whiteLineMat);
+        rightEdge.position.set(ROAD_WIDTH / 2 - 0.3, 0.03, 0);
+        seg.add(leftEdge, rightEdge);
+
+        // Dashed White Lane Markers
+        const dashGeo = new THREE.PlaneGeometry(0.2, 3.2);
+        dashGeo.rotateX(-Math.PI / 2);
+        for (let z = -SEGMENT_LENGTH / 2 + 5; z < SEGMENT_LENGTH / 2 - 8; z += 8) {
+          [-ROAD_WIDTH / 4, ROAD_WIDTH / 4].forEach(lx => {
+            const dash = new THREE.Mesh(dashGeo, whiteLineMat);
+            dash.position.set(lx, 0.03, z);
+            seg.add(dash);
+          });
+        }
+
+        // Cross-Street Intersection & Zebra Crosswalk at the front of each segment
+        const crossRoadGeo = new THREE.PlaneGeometry(170, 12);
+        crossRoadGeo.rotateX(-Math.PI / 2);
+        const crossRoad = new THREE.Mesh(crossRoadGeo, roadAsphaltMat);
+        crossRoad.position.set(0, 0.01, -SEGMENT_LENGTH / 2 + 6);
+        seg.add(crossRoad);
+
+        // Crosswalk Zebra Stripes
+        const stripeGeo = new THREE.PlaneGeometry(1.1, 3.2);
+        stripeGeo.rotateX(-Math.PI / 2);
+        for (let sx = -ROAD_WIDTH / 2 + 1.8; sx <= ROAD_WIDTH / 2 - 1.8; sx += 2.2) {
+          const stripe = new THREE.Mesh(stripeGeo, whiteLineMat);
+          stripe.position.set(sx, 0.04, -SEGMENT_LENGTH / 2 + 13.5);
+          seg.add(stripe);
+        }
+
+        // Traffic Signal Poles on Left & Right of Intersection (Matches video!)
+        [-ROAD_WIDTH / 2 - 2.2, ROAD_WIDTH / 2 + 2.2].forEach(px => {
+          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 6.2, 8), poleMat);
+          pole.position.set(px, 3.1, -SEGMENT_LENGTH / 2 + 12);
+          seg.add(pole);
+
+          const head = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.3, 0.6), poleMat);
+          head.position.set(px, 6.3, -SEGMENT_LENGTH / 2 + 12);
+          seg.add(head);
+
+          const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.42, 0.65), signalLightMat);
+          lamp.position.set(px, 6.6, -SEGMENT_LENGTH / 2 + 12);
+          seg.add(lamp);
+        });
+
+        scene.add(seg);
+        return seg;
+      }
+
+      for (let i = 0; i < NUM_SEGMENTS; i++) {
+        roadSegments.push(createRoadSegment(i));
+      }
+
+      // ==========================================
+      // VOLUMETRIC 3D SMOKE PUFF PARTICLE POOL
+      // ==========================================
+      const smokePool = [];
+      const MAX_SMOKE_PUFFS = 220;
+      const smokeGeo = new THREE.SphereGeometry(0.65, 7, 7);
+
+      for (let i = 0; i < MAX_SMOKE_PUFFS; i++) {
+        const mat = new THREE.MeshBasicMaterial({
+          color: 0xcbd5e1,
+          transparent: true,
+          opacity: 0.0,
+          depthWrite: false
+        });
+        const mesh = new THREE.Mesh(smokeGeo, mat);
+        mesh.visible = false;
+        scene.add(mesh);
+        smokePool.push({
+          mesh,
+          active: false,
+          vx: 0,
+          vy: 0,
+          vz: 0,
+          life: 0,
+          maxLife: 0.6
+        });
+      }
+
+      let smokeCursor = 0;
+      function spawnSmokePuff(x, y, z, vx, vy, vz, scale = 0.85, maxLife = 0.55, colorHex = 0xcbd5e1) {
+        const p = smokePool[smokeCursor];
+        smokeCursor = (smokeCursor + 1) % MAX_SMOKE_PUFFS;
+        p.active = true;
+        p.mesh.visible = true;
+        p.mesh.position.set(x, y, z);
+        p.mesh.scale.setScalar(scale);
+        p.mesh.material.color.setHex(colorHex);
+        p.mesh.material.opacity = 0.55;
+        p.vx = vx;
+        p.vy = vy;
+        p.vz = vz;
+        p.life = maxLife;
+        p.maxLife = maxLife;
+      }
+
+      // ==========================================
+      // SWARM OF 3D AIR ROADSTERS & GROUND TRAFFIC + N₂ ORBS
+      // ==========================================
+      const airRoadsters = [];
+      const groundCars = [];
+      const coldGasOrbs = [];
+
+      function resetTrafficAndSwarm() {
+        airRoadsters.forEach(a => scene.remove(a.obj.root));
+        groundCars.forEach(g => scene.remove(g.obj.root));
+        coldGasOrbs.forEach(o => scene.remove(o.group));
+        airRoadsters.length = 0;
+        groundCars.length = 0;
+        coldGasOrbs.length = 0;
+
+        const cfg = DIFFICULTY_CONFIG[difficulty];
+        const paints = [silverBodyMat, redBodyMat, darkBodyMat];
+
+        // Spawn Flying Air Roadsters in the Z-Axis Sky
+        for (let i = 0; i < cfg.airRoadsterCount; i++) {
+          const paint = paints[i % paints.length];
+          const obj = createRoadsterMesh({ isPlayer: false, hasThrusters: true, paintMat: paint });
+          scene.add(obj.root);
+
+          const item = {
+            obj,
+            x: (Math.random() - 0.5) * 38,
+            y: 5.5 + Math.random() * 38,
+            baseY: 5.5 + Math.random() * 38,
+            z: -35 - Math.random() * 290,
+            speed: cfg.airSpeedMin + Math.random() * (cfg.airSpeedMax - cfg.airSpeedMin),
+            waveAmp: 1.5 + Math.random() * 4.5,
+            waveFreq: 1.2 + Math.random() * 2.2,
+            wavePhase: Math.random() * Math.PI * 2,
+            swayAmp: (Math.random() - 0.5) * 6,
+            baseX: 0,
+            rollAngle: (Math.random() - 0.5) * 0.55,
+            pitchAngle: (Math.random() - 0.5) * 0.35,
+            spinSpeed: Math.random() < 0.38 ? (Math.random() < 0.5 ? 2.4 : -2.4) : 0,
+            nearMissAwarded: false
+          };
+          item.baseX = item.x;
+          obj.root.position.set(item.x, item.y, item.z);
+          airRoadsters.push(item);
+        }
+
+        // Spawn Ground Road Traffic Roadsters
+        const laneXPositions = [-8.5, -3.0, 3.0, 8.5];
+        for (let i = 0; i < cfg.groundCarCount; i++) {
+          const paint = paints[(i + 1) % paints.length];
+          const obj = createRoadsterMesh({ isPlayer: false, hasThrusters: false, paintMat: paint });
+          scene.add(obj.root);
+
+          const laneX = laneXPositions[i % laneXPositions.length];
+          const gCar = {
+            obj,
+            x: laneX,
+            y: 0,
+            z: -30 - (i * (280 / cfg.groundCarCount)) - Math.random() * 18,
+            speed: 18 + Math.random() * 14,
+            nearMissAwarded: false
+          };
+          obj.root.position.set(gCar.x, gCar.y, gCar.z);
+          groundCars.push(gCar);
+        }
+
+        // Spawn Floating Cyan Cold-Gas Orbs (like the ringed spheres in the video!)
+        const orbSphereGeo = new THREE.SphereGeometry(0.95, 12, 12);
+        const orbRingGeo = new THREE.TorusGeometry(1.55, 0.12, 8, 24);
+        orbRingGeo.rotateX(Math.PI / 2.3);
+        const orbMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+        for (let i = 0; i < 8; i++) {
+          const group = new THREE.Group();
+          group.add(new THREE.Mesh(orbSphereGeo, orbMat));
+          group.add(new THREE.Mesh(orbRingGeo, ringMat));
+          scene.add(group);
+
+          const orb = {
+            group,
+            x: (Math.random() - 0.5) * 28,
+            y: 4 + Math.random() * 34,
+            z: -40 - i * 38
+          };
+          group.position.set(orb.x, orb.y, orb.z);
+          coldGasOrbs.push(orb);
+        }
+      }
+
+      // Toast Notification Helper
+      let toastTimeout = null;
+      function showZAxisToast(signText, headline, subtext, isWarning = false) {
+        toastSignValue.textContent = signText;
+        toastHeadline.textContent = headline;
+        toastHeadline.className = isWarning
+          ? 'text-xs font-extrabold tracking-wide text-rose-400 uppercase'
+          : 'text-xs font-extrabold tracking-wide text-white uppercase';
+        toastSubtext.textContent = subtext;
+        zAxisToast.classList.remove('opacity-0', '-translate-y-3');
+        zAxisToast.classList.add('opacity-100', 'translate-y-0');
+
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          zAxisToast.classList.remove('opacity-100', 'translate-y-0');
+          zAxisToast.classList.add('opacity-0', '-translate-y-3');
+        }, 3600);
+      }
+
+      // Difficulty Switcher
+      function setDifficulty(level) {
+        difficulty = level;
+        const isEasy = level === 'easy';
+
+        btnEasy.className = isEasy
+          ? 'px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all bg-emerald-500/25 text-emerald-300 border border-emerald-400/50'
+          : 'px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all text-slate-400 hover:text-white border border-transparent';
+
+        btnHard.className = !isEasy
+          ? 'px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all bg-rose-500/25 text-rose-300 border border-rose-400/50'
+          : 'px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all text-slate-400 hover:text-white border border-transparent';
+
+        modalBtnEasy.className = isEasy
+          ? 'flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all bg-emerald-500/25 text-emerald-200 border-emerald-400'
+          : 'flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all bg-slate-800/80 text-slate-300 border-slate-700 hover:border-emerald-400';
+
+        modalBtnHard.className = !isEasy
+          ? 'flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all bg-rose-500/25 text-rose-200 border-rose-400'
+          : 'flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all bg-slate-800/80 text-slate-300 border-slate-700 hover:border-rose-400';
+
+        if (gameState === 'menu') {
+          resetTrafficAndSwarm();
+        }
+      }
+
+      // Toggle SPACE Button as a Switch
+      function toggleSpaceSwitch(forceState) {
+        initAudio();
+        if (typeof forceState === 'boolean') {
+          player.spaceSwitchOn = forceState;
+        } else {
+          player.spaceSwitchOn = !player.spaceSwitchOn;
+        }
+        playSound('switch');
+        updateSpaceSwitchUI();
+
+        if (player.spaceSwitchOn && !player.coldGasDepletedLock) {
+          showZAxisToast('∞', 'NO SPEED LIMIT IN THE Z-AXIS', 'Cold-gas thrusters switched ON. Enjoy the sky.');
+        } else if (!player.spaceSwitchOn) {
+          showZAxisToast('35', 'COLD-GAS THRUSTERS SWITCHED OFF', 'Descending to highway. Ground touch is safe & recharges N₂.');
+        }
+      }
+
+      function updateSpaceSwitchUI() {
+        if (player.spaceSwitchOn) {
+          btnSpaceSwitch.classList.remove('space-switch-off');
+          btnSpaceSwitch.classList.add('space-switch-on');
+          spaceSwitchLed.className = 'w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]';
+          spaceSwitchStateText.textContent = 'THRUSTER: ON';
+          spaceSwitchStateText.className = 'font-mono-tech text-xs sm:text-sm font-extrabold text-white';
+        } else {
+          btnSpaceSwitch.classList.remove('space-switch-on');
+          btnSpaceSwitch.classList.add('space-switch-off');
+          spaceSwitchLed.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+          spaceSwitchStateText.textContent = 'THRUSTER: OFF';
+          spaceSwitchStateText.className = 'font-mono-tech text-xs sm:text-sm font-extrabold text-slate-300';
+        }
+      }
+
+      // Trigger 360° 3D Flip / Barrel Roll Trick
+      function triggerQuickFlip(type = 'rollRight') {
+        initAudio();
+        if (gameState !== 'playing') return;
+        if (player.flipMode) return; // Already flipping
+
+        if (player.onGround && player.coldGasRemaining > 0.5) {
+          player.vy = 16;
+          player.onGround = false;
+        }
+        player.flipMode = type;
+        player.flipProgress = 0;
+        playSound('flip');
+      }
+
+      // Start / Reset 3D Game
+      function startGame() {
+        initAudio();
+        gameState = 'playing';
+        score = 0;
+        flipsCount = 0;
+        nearMissesCount = 0;
+        airtimeSeconds = 0;
+
+        player.x = 0;
+        player.y = 12;
+        player.z = 0;
+        player.vx = 0;
+        player.vy = 2;
+        player.forwardSpeed = 64;
+        player.pitch = 0;
+        player.roll = 0;
+        player.yaw = 0;
+        player.flipMode = null;
+        player.flipProgress = 0;
+        player.coldGasRemaining = MAX_COLD_GAS_SECONDS;
+        player.coldGasDepletedLock = false;
+        player.spaceSwitchOn = true;
+        player.onGround = false;
+        player.thrusterActive = true;
+
+        updateSpaceSwitchUI();
+        resetTrafficAndSwarm();
+        gameOverlay.classList.add('hidden');
+        showZAxisToast('∞', 'NO SPEED LIMIT IN THE Z-AXIS', 'Ticket cancelled. 20.0s continuous cold-gas flight active!');
+      }
+
+      // Eliminate Player when colliding with a Tesla Roadster
+      function triggerElimination(reasonText = 'COLLIDED WITH AIR ROADSTER') {
+        gameState = 'eliminated';
+        playSound('eliminate');
+
+        // Spawn dramatic 3D crash smoke cloud around player
+        for (let i = 0; i < 32; i++) {
+          spawnSmokePuff(
+            player.x + (Math.random() - 0.5) * 4,
+            player.y + (Math.random() - 0.5) * 3,
+            player.z + (Math.random() - 0.5) * 4,
+            (Math.random() - 0.5) * 18,
+            (Math.random() - 0.2) * 16,
+            (Math.random() - 0.5) * 18,
+            1.6,
+            0.9,
+            i % 2 === 0 ? 0xf87171 : 0xe2e8f0
+          );
+        }
+
+        const finalScore = Math.floor(score);
+        if (finalScore > bestScore) {
+          bestScore = finalScore;
+          try {
+            localStorage.setItem('roadster3d_best', String(bestScore));
+          } catch (e) {}
+        }
+
+        overlayBadge.textContent = reasonText;
+        overlayBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-300 border border-rose-400/40 mb-2';
+        overlayTitle.textContent = finalScore.toLocaleString();
+        overlaySubtitle.textContent = `BEST ${bestScore.toLocaleString()} • AIRTIME ${Math.round(airtimeSeconds)}s • Remember: touching the ground is always safe and refills your 20s cold-gas tank!`;
+
+        postGameStats.classList.remove('hidden');
+        postGameStats.classList.add('grid');
+        finalScoreVal.textContent = finalScore.toLocaleString();
+        finalFlipsVal.textContent = flipsCount;
+        finalDodgedVal.textContent = nearMissesCount;
+        bestScoreVal.textContent = bestScore.toLocaleString();
+        btnLaunchGame.textContent = 'DRIVE AGAIN';
+
+        gameOverlay.classList.remove('hidden');
+      }
+
+      // ==========================================
+      // MAIN 3D PHYSICS & GAMEPLAY UPDATE LOOP
+      // ==========================================
+      function updateGame(dt) {
+        const cfg = DIFFICULTY_CONFIG[difficulty];
+
+        // Gather input from Keyboard WASD, On-Screen WASD, and Mobile Virtual Joystick
+        let inputX = 0;
+        let inputY = 0;
+
+        if (keys.KeyA) inputX -= 1;
+        if (keys.KeyD) inputX += 1;
+        if (keys.KeyW) inputY += 1; // Climb up in Z-Axis
+        if (keys.KeyS) inputY -= 1; // Dive down toward road
+
+        if (joystickVector.active) {
+          inputX += joystickVector.x;
+          inputY -= joystickVector.y; // Pushing joystick up climbs up
+        }
+
+        inputX = Math.max(-1, Math.min(1, inputX));
+        inputY = Math.max(-1, Math.min(1, inputY));
+
+        const isBoosting = thrustButtonHeld || keys.ShiftLeft || keys.ShiftRight;
+        player.boosting = isBoosting;
+
+        // Cold Gas 20-Second Continuous Flight Logic:
+        // Active if Space Switch is ON (or holding W/Climb or Boost) AND we have cold gas remaining & aren't locked out
+        const wantsFlight = player.spaceSwitchOn || inputY > 0.15 || isBoosting;
+        const canFireColdGas = !player.coldGasDepletedLock && player.coldGasRemaining > 0;
+
+        player.thrusterActive = false;
+        if (canFireColdGas && wantsFlight) {
+          player.thrusterActive = true;
+          // Continuous 20-second flight timer countdown
+          player.coldGasRemaining = Math.max(0, player.coldGasRemaining - dt);
+          if (player.coldGasRemaining <= 0) {
+            player.coldGasRemaining = 0;
+            player.coldGasDepletedLock = true;
+            player.thrusterActive = false;
+            showZAxisToast('0s', '20s COLD GAS DEPLETED!', 'Descending to highway—touch ground safely to refill N₂!', true);
+          }
+        }
+
+        // Vertical Altitude (Y in Three.js, displayed as Z-AXIS ALT in meters!)
+        if (player.thrusterActive) {
+          // Hover / Climb in the Z-Axis sky
+          let targetVy = 2.2 + inputY * 22.0 + (isBoosting ? 5.0 : 0);
+          // Gentle ceiling near 45m
+          if (player.y > 42 && targetVy > 0) {
+            targetVy *= 0.25;
+          }
+          player.vy += (targetVy - player.vy) * 6.5 * dt;
+        } else {
+          // Cold Gas OFF or 20s Depleted -> Gravity pulls Roadster down to the ground!
+          player.vy -= 28.0 * dt;
+          if (inputY < -0.1) {
+            player.vy += inputY * 18.0 * dt;
+          }
+        }
+
+        player.y += player.vy * dt;
+        if (player.y > 48) {
+          player.y = 48;
+          player.vy = Math.min(0, player.vy);
+        }
+
+        // Ground Touch & Hard Landing Survival Mechanic!
+        // ("if hard tocuh we will not eleiminat only fo rther")
+        if (player.y <= 0) {
+          const impactVy = -player.vy;
+          player.y = 0;
+          player.onGround = true;
+
+          if (impactVy > 14) {
+            // Hard Touch on Ground -> SAFE! Cushion bounce & smoke burst, NEVER eliminates!
+            player.vy = Math.min(9.5, impactVy * 0.32);
+            playSound('bounce');
+            for (let i = 0; i < 12; i++) {
+              spawnSmokePuff(
+                player.x + (Math.random() - 0.5) * 2.5,
+                0.3,
+                player.z + (Math.random() - 0.5) * 2.5,
+                (Math.random() - 0.5) * 10,
+                2 + Math.random() * 4,
+                10,
+                1.1,
+                0.45,
+                0x6ee7b7
+              );
+            }
+            showZAxisToast('SAFE', 'HARD TOUCH ABSORBED — SAFE!', 'Suspension & cold-gas fan cushioned the drop. Refilling N₂!');
+          } else {
+            player.vy = 0;
+          }
+
+          // Refill 20-second Cold Gas Tank while touching the ground
+          player.coldGasRemaining = Math.min(MAX_COLD_GAS_SECONDS, player.coldGasRemaining + cfg.refillRatePerSec * dt);
+          if (player.coldGasDepletedLock && player.coldGasRemaining >= 3.0) {
+            player.coldGasDepletedLock = false;
+            showZAxisToast('∞', 'COLD GAS RECHARGED!', 'Ready for 20s continuous Z-Axis flight.');
+          }
+
+          // Check ground speeding ticket Easter egg (from video frame_3!)
+          speedTicketCooldown = Math.max(0, speedTicketCooldown - dt);
+          if (player.forwardSpeed > 35 && speedTicketCooldown <= 0) {
+            speedTicketCooldown = 7.5;
+            showZAxisToast('35', '🚨 SPEEDING TICKET -50', `${Math.round(player.forwardSpeed)} in a 35. Tip: there's no speed limit in the Z-axis.`, true);
+            score = Math.max(0, score - 50);
+          }
+        } else {
+          player.onGround = false;
+          airtimeSeconds += dt;
+        }
+
+        // Lateral Steering (Left / Right across highway & sky)
+        const targetVx = inputX * 26.0;
+        player.vx += (targetVx - player.vx) * 8.5 * dt;
+        player.x += player.vx * dt;
+        player.x = Math.max(-22, Math.min(22, player.x));
+
+        // Double-push / extreme hold in air triggers a 360° Barrel Roll Flip!
+        if (!player.onGround && !player.flipMode && Math.abs(inputX) > 0.92 && player.y > 6 && Math.random() < 0.04) {
+          triggerQuickFlip(inputX > 0 ? 'rollRight' : 'rollLeft');
+        }
+
+        // Forward Speed (MPH)
+        const targetSpeed = isBoosting
+          ? 96
+          : (player.onGround ? 38 : 65);
+        player.forwardSpeed += (targetSpeed - player.forwardSpeed) * 4.0 * dt;
+
+        // 3D Car Attitude (Pitch, Roll, Yaw & 360° Flips)
+        if (player.flipMode) {
+          player.flipProgress += dt * 7.8; // Complete 2*PI flip in ~0.8s
+          if (player.flipProgress >= Math.PI * 2) {
+            player.flipMode = null;
+            player.flipProgress = 0;
+            flipsCount += 1;
+            const bonus = Math.round(200 * cfg.scoreMult);
+            score += bonus;
+            showZAxisToast('360°', `360° Z-AXIS FLIP! +${bonus}`, `Total Tricks: ${flipsCount}`);
+          }
+        }
+
+        const basePitch = player.onGround ? 0 : THREE.MathUtils.clamp(player.vy * 0.022, -0.38, 0.42);
+        const baseRoll = -inputX * 0.38;
+        const baseYaw = -inputX * 0.14;
+
+        let flipPitchOffset = 0;
+        let flipRollOffset = 0;
+        if (player.flipMode === 'rollRight') flipRollOffset = -player.flipProgress;
+        if (player.flipMode === 'rollLeft') flipRollOffset = player.flipProgress;
+        if (player.flipMode === 'backFlip') flipPitchOffset = player.flipProgress;
+
+        playerObj.root.position.set(player.x, player.y, player.z);
+        playerObj.bodyGroup.rotation.set(
+          basePitch + flipPitchOffset,
+          baseYaw,
+          baseRoll + flipRollOffset
+        );
+
+        // Update Player 4-Corner Thruster Plumes & 3D Volumetric Smoke Trail
+        const showThrusters = player.thrusterActive || isBoosting;
+        playerObj.thrusterGroup.visible = showThrusters;
+        if (playerObj.rearBoostJet) {
+          playerObj.rearBoostJet.visible = isBoosting;
+        }
+
+        if (showThrusters) {
+          const pulseScale = (isBoosting ? 1.35 : 1.0) * (0.85 + Math.random() * 0.3);
+          playerObj.plumeMeshes.forEach(({ innerJet, outerJet }) => {
+            innerJet.scale.set(1, pulseScale, 1);
+            outerJet.scale.set(1, pulseScale * 1.1, 1);
+          });
+
+          // Emit 3D Smoke Puffs from rear corners
+          [[-1.05, 1.65], [1.05, 1.65]].forEach(([nx, nz]) => {
+            if (Math.random() < 0.85) {
+              spawnSmokePuff(
+                player.x + nx + (Math.random() - 0.5) * 0.3,
+                Math.max(0.2, player.y - 1.2),
+                player.z + nz,
+                (Math.random() - 0.5) * 2.5,
+                -4 - Math.random() * 3,
+                player.forwardSpeed * 0.85,
+                isBoosting ? 1.1 : 0.78,
+                0.52,
+                isBoosting ? 0xfed7aa : 0xdbeafe
+              );
+            }
+          });
+        }
+
+        // Scroll Infinite 3D Highway Segments toward Camera
+        const worldScrollStep = player.forwardSpeed * 1.25 * dt;
+        score += worldScrollStep * 0.45 * cfg.scoreMult;
+
+        roadSegments.forEach(seg => {
+          seg.position.z += worldScrollStep;
+          if (seg.position.z > SEGMENT_LENGTH) {
+            seg.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH;
+          }
+        });
+
+        // Update Flying Air Roadsters in 3D Space
+        for (let i = 0; i < airRoadsters.length; i++) {
+          const a = airRoadsters[i];
+          a.z += (worldScrollStep + a.speed * 0.45 * dt);
+          a.wavePhase += a.waveFreq * dt;
+          a.y = Math.max(3.5, a.baseY + Math.sin(a.wavePhase) * a.waveAmp);
+          a.x = a.baseX + Math.cos(a.wavePhase * 0.7) * a.swayAmp;
+
+          if (a.spinSpeed !== 0) {
+            a.rollAngle += a.spinSpeed * dt;
+          }
+
+          a.obj.root.position.set(a.x, a.y, a.z);
+          a.obj.bodyGroup.rotation.set(a.pitchAngle, 0, a.rollAngle);
+
+          // Flicker Air Roadster thrusters & spawn 3D smoke trail in sky
+          const enemyPulse = 0.8 + Math.random() * 0.35;
+          a.obj.plumeMeshes.forEach(({ innerJet, outerJet }) => {
+            innerJet.scale.set(1, enemyPulse, 1);
+            outerJet.scale.set(1, enemyPulse, 1);
+          });
+
+          if (a.z > -160 && a.z < 15 && Math.random() < 0.45) {
+            spawnSmokePuff(
+              a.x + (Math.random() - 0.5) * 1.6,
+              a.y - 1.4,
+              a.z + 1.8,
+              (Math.random() - 0.5) * 1.5,
+              -2.5,
+              worldScrollStep * 0.6,
+              0.72,
+              0.48,
+              0xcbd5e1
+            );
+          }
+
+          // 3D Bounding Box Collision Check with Player Roadster
+          const dx = Math.abs(player.x - a.x);
+          const dy = Math.abs(player.y - a.y);
+          const dz = Math.abs(player.z - a.z);
+
+          if (dx < 2.25 && dy < 1.35 && dz < 4.1) {
+            triggerElimination('ELIMINATED BY AIR ROADSTER');
+            return;
+          }
+
+          // Near Miss Detection
+          if (!a.nearMissAwarded && dz < 3.5 && dx < 4.8 && dy < 3.2) {
+            a.nearMissAwarded = true;
+            nearMissesCount += 1;
+            score += Math.round(75 * cfg.scoreMult);
+          }
+
+          // Respawn far ahead when passed camera
+          if (a.z > 24) {
+            a.z = -260 - Math.random() * 90;
+            a.baseX = (Math.random() - 0.5) * 38;
+            a.baseY = 5.5 + Math.random() * 38;
+            a.nearMissAwarded = false;
+          }
+        }
+
+        // Update Ground Highway Traffic Roadsters
+        for (let i = 0; i < groundCars.length; i++) {
+          const g = groundCars[i];
+          g.z += (worldScrollStep - g.speed * dt);
+          g.obj.root.position.set(g.x, g.y, g.z);
+
+          // Collision Check with Ground Traffic Roadster
+          const dx = Math.abs(player.x - g.x);
+          const dy = Math.abs(player.y - g.y);
+          const dz = Math.abs(player.z - g.z);
+
+          if (dx < 2.2 && dy < 1.25 && dz < 4.1) {
+            triggerElimination('REAR-ENDED THE JAM');
+            return;
+          }
+
+          if (!g.nearMissAwarded && dz < 3.5 && dx < 4.4 && dy < 2.5) {
+            g.nearMissAwarded = true;
+            nearMissesCount += 1;
+            score += Math.round(50 * cfg.scoreMult);
+          }
+
+          if (g.z > 24) {
+            g.z = -240 - Math.random() * 60;
+            g.nearMissAwarded = false;
+          }
+        }
+
+        // Update Collectible Cold-Gas Orbs
+        for (let i = 0; i < coldGasOrbs.length; i++) {
+          const orb = coldGasOrbs[i];
+          orb.z += worldScrollStep;
+          orb.group.position.set(orb.x, orb.y, orb.z);
+          orb.group.rotation.y += 2.5 * dt;
+
+          const dist = Math.hypot(player.x - orb.x, player.y - orb.y, player.z - orb.z);
+          if (dist < 3.4) {
+            playSound('orb');
+            player.coldGasRemaining = Math.min(MAX_COLD_GAS_SECONDS, player.coldGasRemaining + 4.0);
+            player.coldGasDepletedLock = false;
+            score += Math.round(120 * cfg.scoreMult);
+            orb.z = -270 - Math.random() * 60;
+            orb.x = (Math.random() - 0.5) * 30;
+            orb.y = 5 + Math.random() * 34;
+          } else if (orb.z > 22) {
+            orb.z = -270 - Math.random() * 60;
+            orb.x = (Math.random() - 0.5) * 30;
+            orb.y = 5 + Math.random() * 34;
+          }
+        }
+
+        // Update 3D Smoke Particle Pool
+        for (let i = 0; i < MAX_SMOKE_PUFFS; i++) {
+          const p = smokePool[i];
+          if (!p.active) continue;
+          p.life -= dt;
+          if (p.life <= 0) {
+            p.active = false;
+            p.mesh.visible = false;
+            continue;
+          }
+          p.mesh.position.x += p.vx * dt;
+          p.mesh.position.y += p.vy * dt;
+          p.mesh.position.z += p.vz * dt;
+          const ratio = p.life / p.maxLife;
+          p.mesh.material.opacity = ratio * 0.5;
+          p.mesh.scale.addScalar(dt * 1.8);
+        }
+
+        // Smooth 3D Chase Camera Follow (Exact perspective from z-axis-traffic.grok.me!)
+        const camTargetX = player.x * 0.62;
+        const camTargetY = player.y + 4.2;
+        const camTargetZ = isBoosting ? 14.8 : 13.2;
+        camera.position.x += (camTargetX - camera.position.x) * 7.5 * dt;
+        camera.position.y += (camTargetY - camera.position.y) * 6.5 * dt;
+        camera.position.z += (camTargetZ - camera.position.z) * 6.5 * dt;
+        camera.lookAt(player.x * 0.35, player.y + 1.2, -32);
+
+        // Update Tesla Dashboard HUD
+        const pct = Math.max(0, Math.min(100, (player.coldGasRemaining / MAX_COLD_GAS_SECONDS) * 100));
+        coldGasBar.style.height = `${pct}%`;
+        coldGasTimerText.textContent = `${player.coldGasRemaining.toFixed(1)}s`;
+
+        if (player.coldGasRemaining < 4.5 || player.coldGasDepletedLock) {
+          coldGasBar.className = 'w-full rounded-full bg-rose-500 shadow-[0_0_12px_#f43f5e] transition-all duration-75';
+        } else {
+          coldGasBar.className = 'w-full rounded-full bg-sky-400 shadow-[0_0_12px_#38bdf8] transition-all duration-75';
+        }
+
+        const altMeters = Math.round(player.y);
+        scoreText.textContent = Math.floor(score).toLocaleString();
+        flipsText.textContent = flipsCount;
+        speedText.textContent = Math.round(player.forwardSpeed);
+        altText.textContent = `ALT ${altMeters} m`;
+
+        if (altMeters > 0) {
+          axisModeText.textContent = 'Z-AXIS';
+          speedLimitBox.className = 'speed-sign-zaxis rounded-xl w-14 h-18 sm:w-16 sm:h-20 px-2 py-1.5 flex flex-col items-center justify-center text-center transition-all';
+          speedLimitVal.textContent = '∞';
+          gearD.className = 'text-slate-500 transition-colors';
+          gearZ.className = 'text-sky-400 font-black drop-shadow-[0_0_8px_rgba(56,189,248,0.85)] transition-colors';
+          statusLabel.textContent = player.coldGasDepletedLock ? '20s EMPTY — DESCENDING' : 'Z-AXIS FLIGHT ACTIVE';
+        } else {
+          axisModeText.textContent = 'MPH';
+          speedLimitBox.className = 'speed-sign-ground rounded-xl w-14 h-18 sm:w-16 sm:h-20 px-2 py-1.5 flex flex-col items-center justify-center text-center transition-all';
+          speedLimitVal.textContent = '35';
+          gearD.className = 'text-white font-black transition-colors';
+          gearZ.className = 'text-slate-500 transition-colors';
+          statusLabel.textContent = 'ON HIGHWAY — RECHARGING N₂';
+        }
+      }
+
+      // Animation Loop
+      let animFrameId = null;
+      let lastTime = performance.now();
+
+      function gameLoop(now) {
+        const dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
+
+        if (gameState === 'playing') {
+          updateGame(dt);
+        } else {
+          // Subtle idle showcase orbit in menu
+          const t = now * 0.001;
+          playerObj.root.position.set(Math.sin(t) * 1.5, 9 + Math.sin(t * 2) * 0.8, 0);
+          playerObj.bodyGroup.rotation.set(0.08, 0, -Math.cos(t) * 0.12);
+          camera.position.set(0, 12.5, 14);
+          camera.lookAt(0, 8.5, -30);
+        }
+
+        renderer.render(scene, camera);
+        animFrameId = requestAnimationFrame(gameLoop);
+      }
+
+      // Keyboard Controls (WASD + Arrows + Space Switch + Q/E Flip + Shift Boost)
+      window.addEventListener('keydown', (e) => {
+        if (gameState !== 'playing' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyW' || e.code === 'ArrowUp')) {
+          e.preventDefault();
+          startGame();
+          return;
+        }
+        if (e.code === 'Space') {
+          e.preventDefault();
+          if (!e.repeat) toggleSpaceSwitch();
+          return;
+        }
+        if (e.code === 'KeyQ') {
+          triggerQuickFlip('rollLeft');
+          return;
+        }
+        if (e.code === 'KeyE') {
+          triggerQuickFlip('rollRight');
+          return;
+        }
+        if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+          keys.KeyW = true;
+          keyButtons.KeyW.classList.add('active-key');
+        }
+        if (e.code === 'KeyS' || e.code === 'ArrowDown') {
+          keys.KeyS = true;
+          keyButtons.KeyS.classList.add('active-key');
+        }
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+          keys.KeyA = true;
+          keyButtons.KeyA.classList.add('active-key');
+        }
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+          keys.KeyD = true;
+          keyButtons.KeyD.classList.add('active-key');
+        }
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+          keys.ShiftLeft = true;
+          btnRocketThrust.classList.add('thrust-btn-active');
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+          keys.KeyW = false;
+          keyButtons.KeyW.classList.remove('active-key');
+        }
+        if (e.code === 'KeyS' || e.code === 'ArrowDown') {
+          keys.KeyS = false;
+          keyButtons.KeyS.classList.remove('active-key');
+        }
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+          keys.KeyA = false;
+          keyButtons.KeyA.classList.remove('active-key');
+        }
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+          keys.KeyD = false;
+          keyButtons.KeyD.classList.remove('active-key');
+        }
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+          keys.ShiftLeft = false;
+          keys.ShiftRight = false;
+          if (!thrustButtonHeld) btnRocketThrust.classList.remove('thrust-btn-active');
+        }
+      });
+
+      // On-Screen WASD Touch/Click Buttons
+      Object.entries(keyButtons).forEach(([code, btn]) => {
+        const activate = (ev) => {
+          ev.preventDefault();
+          initAudio();
+          keys[code] = true;
+          btn.classList.add('active-key');
+        };
+        const deactivate = (ev) => {
+          ev.preventDefault();
+          keys[code] = false;
+          btn.classList.remove('active-key');
+        };
+        btn.addEventListener('pointerdown', activate);
+        btn.addEventListener('pointerup', deactivate);
+        btn.addEventListener('pointerleave', deactivate);
+        btn.addEventListener('pointercancel', deactivate);
+      });
+
+      // Mobile Virtual Joystick
+      let joystickPointerId = null;
+      const maxJoystickRadius = 32;
+
+      function updateJoystickFromPoint(clientX, clientY) {
+        const rect = joystickZone.getBoundingClientRect();
+        const centerX = rect.left + rect.width * 0.5;
+        const centerY = rect.top + rect.height * 0.5;
+        let dx = clientX - centerX;
+        let dy = clientY - centerY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > maxJoystickRadius) {
+          dx = (dx / dist) * maxJoystickRadius;
+          dy = (dy / dist) * maxJoystickRadius;
+        }
+
+        joystickKnob.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+        joystickVector.x = dx / maxJoystickRadius;
+        joystickVector.y = dy / maxJoystickRadius;
+        joystickVector.active = true;
+      }
+
+      function resetJoystick() {
+        joystickPointerId = null;
+        joystickVector.x = 0;
+        joystickVector.y = 0;
+        joystickVector.active = false;
+        joystickKnob.style.transform = 'translate(0px, 0px)';
+      }
+
+      joystickZone.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        initAudio();
+        joystickPointerId = e.pointerId;
+        joystickZone.setPointerCapture(e.pointerId);
+        updateJoystickFromPoint(e.clientX, e.clientY);
+      });
+
+      joystickZone.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== joystickPointerId) return;
+        updateJoystickFromPoint(e.clientX, e.clientY);
+      });
+
+      joystickZone.addEventListener('pointerup', (e) => {
+        if (e.pointerId === joystickPointerId) resetJoystick();
+      });
+
+      joystickZone.addEventListener('pointercancel', (e) => {
+        if (e.pointerId === joystickPointerId) resetJoystick();
+      });
+
+      // SPACE Switch Button
+      btnSpaceSwitch.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleSpaceSwitch();
+      });
+
+      // Rocket Thrust Boost Button
+      const startThrust = (e) => {
+        e.preventDefault();
+        initAudio();
+        thrustButtonHeld = true;
+        btnRocketThrust.classList.add('thrust-btn-active');
+      };
+      const stopThrust = (e) => {
+        e.preventDefault();
+        thrustButtonHeld = false;
+        btnRocketThrust.classList.remove('thrust-btn-active');
+      };
+      btnRocketThrust.addEventListener('pointerdown', startThrust);
+      btnRocketThrust.addEventListener('pointerup', stopThrust);
+      btnRocketThrust.addEventListener('pointerleave', stopThrust);
+      btnRocketThrust.addEventListener('pointercancel', stopThrust);
+
+      // Quick 360° Flip Button
+      btnQuickFlip.addEventListener('click', (e) => {
+        e.preventDefault();
+        triggerQuickFlip('rollRight');
+      });
+
+      // Difficulty & Launch Buttons
+      btnEasy.addEventListener('click', () => setDifficulty('easy'));
+      btnHard.addEventListener('click', () => setDifficulty('hard'));
+      modalBtnEasy.addEventListener('click', () => setDifficulty('easy'));
+      modalBtnHard.addEventListener('click', () => setDifficulty('hard'));
+      btnLaunchGame.addEventListener('click', () => startGame());
+
+      // Audio Mute Toggle
+      btnAudio.addEventListener('click', () => {
+        soundMuted = !soundMuted;
+        iconSoundOn.classList.toggle('hidden', soundMuted);
+        iconSoundOff.classList.toggle('hidden', !soundMuted);
+      });
+
+      // Rules / Pause Modal Toggle
+      btnRules.addEventListener('click', () => {
+        if (gameState === 'playing') {
+          gameState = 'menu';
+          overlayBadge.textContent = 'FLIGHT PAUSED';
+          overlayTitle.textContent = '3D Z-AXIS FLIGHT MANUAL';
+          btnLaunchGame.textContent = 'RESUME / RESTART 3D FLIGHT';
+          gameOverlay.classList.remove('hidden');
+        } else {
+          startGame();
+        }
+      });
+
+      // Handle Window Resize
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      canvas.addEventListener('pointerdown', () => {
+        if (gameState !== 'playing') {
+          startGame();
+        }
+      });
+
+      window.onload = function () {
+        setDifficulty('easy');
+        updateSpaceSwitchUI();
+        startGame();
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        lastTime = performance.now();
+        animFrameId = requestAnimationFrame(gameLoop);
+      };
+    })();
+  </script>
+</body>
+</html>
