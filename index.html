@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Tesla Roadster 3D: Z-Axis Cold-Gas Traffic</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <title>Tesla Roadster 3D: Z-Axis Absolute Graphics Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,54 +22,63 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #101520;
+      background-color: #070b14;
       font-family: 'Inter', sans-serif;
       color: #f8fafc;
       touch-action: none;
+    }
+    #gameCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 0;
     }
     .font-mono-tech {
       font-family: 'JetBrains Mono', monospace;
     }
     .hud-glass {
-      background: rgba(15, 21, 32, 0.72);
+      background: rgba(10, 15, 28, 0.78);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.16);
     }
     .speed-sign-ground {
       background: #ffffff;
       color: #0f172a;
       border: 2px solid #cbd5e1;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
     }
     .speed-sign-zaxis {
-      background: rgba(16, 21, 32, 0.85);
+      background: rgba(12, 18, 32, 0.9);
       color: #ffffff;
-      border: 2px solid rgba(255, 255, 255, 0.85);
-      box-shadow: 0 0 18px rgba(186, 230, 253, 0.25);
+      border: 2px solid rgba(255, 255, 255, 0.92);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.35);
     }
     .ctrl-btn {
       transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
     }
-    .ctrl-btn:active, .ctrl-btn.active-btn {
+    .ctrl-btn:active {
       transform: scale(0.92);
     }
     .thrust-active {
-      background: linear-gradient(135deg, #38bdf8, #2563eb) !important;
+      background: linear-gradient(135deg, #0ea5e9, #1d4ed8) !important;
       border-color: #e0f2fe !important;
-      box-shadow: 0 0 28px rgba(56, 189, 248, 0.85) !important;
+      box-shadow: 0 0 34px rgba(14, 165, 233, 0.95) !important;
       transform: scale(0.94);
     }
     .boost-active {
-      background: linear-gradient(135deg, #f97316, #e11d48) !important;
-      border-color: #ffedd5 !important;
-      box-shadow: 0 0 24px rgba(249, 115, 22, 0.8) !important;
+      background: linear-gradient(135deg, #38bdf8, #6366f1) !important;
+      border-color: #ffffff !important;
+      box-shadow: 0 0 36px rgba(99, 102, 241, 0.98) !important;
       transform: scale(0.94);
     }
     @keyframes floatUpFade {
-      0% { opacity: 1; transform: translate(-50%, 0px) scale(0.95); }
-      20% { opacity: 1; transform: translate(-50%, -8px) scale(1.03); }
-      100% { opacity: 0; transform: translate(-50%, -28px) scale(1); }
+      0% { opacity: 0.95; transform: translate(-50%, 0px) scale(0.94); }
+      20% { opacity: 1; transform: translate(-50%, -8px) scale(1.04); }
+      100% { opacity: 0; transform: translate(-50%, -30px) scale(1); }
     }
     .callout-anim {
       animation: floatUpFade 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -78,23 +87,18 @@
 </head>
 <body class="relative w-full h-full flex flex-col justify-between overflow-hidden">
 
-  <!-- 3D WebGL Canvas -->
-  <canvas id="gameCanvas" class="absolute inset-0 w-full h-full z-0 block"></canvas>
+  <canvas id="gameCanvas"></canvas>
 
-  <!-- Floating Center Callout Container (e.g., INSANE MISS +50, LANDED +108, CHARGE +100) -->
-  <div id="calloutContainer" class="fixed inset-x-0 top-[34%] z-20 pointer-events-none flex flex-col items-center"></div>
+  <div id="calloutContainer" class="fixed inset-x-0 top-[35%] z-20 pointer-events-none flex flex-col items-center"></div>
 
-  <!-- TOP TESLA Z-AXIS HUD (Exact Match to Video UI) -->
   <header class="relative z-10 w-full pointer-events-none">
-    <!-- Top Thin Bar: PRNDZ + Steering Wheel Icon on Left, Score on Right -->
-    <div class="w-full px-4 sm:px-7 py-2.5 flex items-center justify-between border-b border-slate-400/20">
-      <!-- Left: P R N D Z + Autopilot Wheel Icon -->
+    <div class="w-full px-4 sm:px-7 py-2.5 flex items-center justify-between border-b border-slate-400/20 bg-slate-950/30">
       <div class="flex items-center gap-2.5 text-xs sm:text-sm font-bold tracking-widest pointer-events-auto">
-        <span class="text-slate-500">P</span>
-        <span class="text-slate-500">R</span>
-        <span class="text-slate-500">N</span>
-        <span id="gearD" class="text-slate-400 transition-colors">D</span>
-        <span id="gearZ" class="text-white font-black drop-shadow-[0_0_8px_rgba(255,255,255,0.9)] transition-colors">Z</span>
+        <span class="text-slate-600">P</span>
+        <span class="text-slate-600">R</span>
+        <span class="text-slate-600">N</span>
+        <span id="gearD" class="text-slate-500 transition-colors">D</span>
+        <span id="gearZ" class="text-white font-black drop-shadow-[0_0_8px_rgba(255,255,255,0.95)] transition-colors">Z</span>
         <svg class="w-4 h-4 text-slate-400 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="9"/>
           <circle cx="12" cy="12" r="2.5"/>
@@ -102,37 +106,30 @@
         </svg>
       </div>
 
-      <!-- Right: Live Score Counter -->
-      <div id="scoreText" class="font-sans text-base sm:text-lg font-bold tracking-tight text-white">
+      <div id="scoreText" class="font-sans text-base sm:text-xl font-extrabold tracking-tight text-white">
         0
       </div>
     </div>
 
-    <!-- Second Row: Left (HOLD + Headlight + Vertical COLD GAS Bar) | Center Toast | Right (Speed + Z-AXIS + ALT + Speed Limit Sign) -->
     <div class="w-full px-4 sm:px-7 pt-3 flex items-start justify-between">
-      
-      <!-- Left Cluster: HOLD + Headlight + Vertical COLD GAS Tube -->
       <div class="flex flex-col items-center gap-3.5">
-        <!-- (H) HOLD Icon -->
-        <div class="flex flex-col items-center opacity-50">
+        <div class="flex flex-col items-center opacity-55">
           <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-slate-400 flex items-center justify-center text-[11px] font-extrabold text-slate-300">
             H
           </div>
           <span class="text-[8px] font-bold tracking-widest text-slate-400 mt-0.5">HOLD</span>
         </div>
 
-        <!-- Green / White Headlight Icon -->
-        <div class="text-slate-200 opacity-90">
+        <div class="text-slate-100 opacity-95">
           <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 5c5 0 9 3.1 9 7s-4 7-9 7V5z"/>
             <path d="M3 7h5M3 10.5h5M3 14h5M3 17.5h5"/>
           </svg>
         </div>
 
-        <!-- Vertical COLD GAS Gauge -->
         <div class="flex flex-col items-center mt-1">
-          <div class="relative w-2.5 sm:w-3 h-28 sm:h-36 rounded-full bg-slate-800/80 border border-slate-500/50 overflow-hidden flex flex-col justify-end p-0.5">
-            <div id="coldGasBar" class="w-full rounded-full bg-sky-200 shadow-[0_0_12px_#bae6fd] transition-all duration-75" style="height: 100%;"></div>
+          <div class="relative w-2.5 sm:w-3 h-28 sm:h-36 rounded-full bg-slate-900/90 border border-slate-500/60 overflow-hidden flex flex-col justify-end p-0.5">
+            <div id="coldGasBar" class="w-full rounded-full bg-sky-300 shadow-[0_0_12px_#38bdf8] transition-all duration-75" style="height: 100%;"></div>
           </div>
           <div class="text-[8px] font-bold uppercase tracking-widest text-slate-400 leading-tight text-center mt-1.5">
             COLD<br/>GAS
@@ -140,52 +137,45 @@
         </div>
       </div>
 
-      <!-- Center Popup Toast (Exact Match to Video: White Speeding Ticket & Dark Z-Axis Notice) -->
-      <div id="centerToast" class="opacity-0 -translate-y-3 pointer-events-none transition-all duration-300 max-w-xs sm:max-w-sm rounded-xl px-3.5 py-2.5 flex items-center gap-3 shadow-2xl">
-        <div id="toastSignBox" class="w-8 h-10 rounded border flex flex-col items-center justify-center text-[7px] font-extrabold leading-none shrink-0">
+      <div id="centerToast" class="opacity-100 translate-y-0 pointer-events-none transition-all duration-300 max-w-xs sm:max-w-sm rounded-xl px-3.5 py-2.5 flex items-center gap-3 shadow-2xl bg-white text-slate-900 border border-slate-200">
+        <div id="toastSignBox" class="w-8 h-10 rounded border-2 border-slate-900 bg-white text-slate-900 flex flex-col items-center justify-center text-[7px] font-extrabold leading-none shrink-0">
           <span>SPEED</span>
           <span>LIMIT</span>
           <span id="toastSignNum" class="text-xs font-black mt-0.5">∞</span>
         </div>
         <div class="text-left">
-          <div id="toastTitle" class="text-[11px] sm:text-xs font-extrabold tracking-wide uppercase">
+          <div id="toastTitle" class="text-[11px] sm:text-xs font-extrabold tracking-wide uppercase text-slate-900">
             NO SPEED LIMIT IN THE Z-AXIS
           </div>
-          <div id="toastDesc" class="text-[10px] sm:text-[11px] opacity-80">
+          <div id="toastDesc" class="text-[10px] sm:text-[11px] text-slate-600 font-medium">
             Ticket cancelled. Enjoy the sky.
           </div>
         </div>
       </div>
 
-      <!-- Right Cluster: Speedometer + Z-AXIS / MPH + ALT + Speed Limit Box -->
       <div class="flex items-start gap-3">
         <div class="text-right">
           <div id="speedText" class="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-none">
-            47
+            64
           </div>
           <div id="axisModeText" class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-300 mt-1">
             Z-AXIS
           </div>
           <div id="altText" class="text-[9px] sm:text-[10px] font-semibold text-slate-400">
-            ALT 9 m
+            ALT 14 m
           </div>
         </div>
 
-        <!-- Speed Limit Sign (35 on Ground, ∞ in Z-Axis) -->
         <div id="speedLimitBox" class="speed-sign-zaxis rounded-lg w-12 h-15 sm:w-14 sm:h-18 px-1.5 py-1.5 flex flex-col items-center justify-center text-center transition-all">
           <span class="text-[8px] sm:text-[9px] font-extrabold uppercase leading-tight tracking-wider">SPEED<br/>LIMIT</span>
           <span id="speedLimitVal" class="text-xl sm:text-2xl font-black leading-none mt-0.5">∞</span>
         </div>
       </div>
-
     </div>
   </header>
 
-  <!-- GAME OVER OVERLAY & MORE SETTINGS DRAWER -->
   <main class="relative z-30 flex-1 flex items-center justify-center px-4 pointer-events-none">
-    
-    <!-- Video-Accurate Game Over Overlay -->
-    <div id="gameOverModal" class="hidden pointer-events-auto text-center max-w-md w-full p-6 rounded-3xl bg-slate-950/80 backdrop-blur-md border border-white/10 shadow-2xl">
+    <div id="gameOverModal" class="hidden pointer-events-auto text-center max-w-md w-full p-6 rounded-3xl bg-slate-950/85 backdrop-blur-md border border-white/15 shadow-2xl">
       <div id="crashReasonText" class="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-400 mb-1">
         REAR-ENDED THE JAM
       </div>
@@ -193,7 +183,7 @@
         SCORE
       </div>
       <div id="finalScoreText" class="text-6xl sm:text-7xl font-extrabold text-white tracking-tight my-1">
-        37
+        780
       </div>
       <div id="bestScoreBadge" class="inline-block px-3 py-0.5 rounded-full bg-slate-800/90 border border-slate-700 text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-5">
         BEST 17,381
@@ -209,11 +199,11 @@
           <div class="text-[9px] font-semibold uppercase tracking-wider text-slate-400">TRICKS</div>
         </div>
         <div>
-          <div id="statCombo" class="text-base sm:text-lg font-extrabold text-white">x1</div>
+          <div id="statCombo" class="text-base sm:text-lg font-extrabold text-white">x0</div>
           <div class="text-[9px] font-semibold uppercase tracking-wider text-slate-400">MAX COMBO</div>
         </div>
         <div>
-          <div id="statAirtime" class="text-base sm:text-lg font-extrabold text-white">2s</div>
+          <div id="statAirtime" class="text-base sm:text-lg font-extrabold text-white">6s</div>
           <div class="text-[9px] font-semibold uppercase tracking-wider text-slate-400">AIRTIME</div>
         </div>
       </div>
@@ -225,12 +215,11 @@
       </div>
     </div>
 
-    <!-- "MORE" Quick Menu Modal (Audio, Difficulty, Camera, Latch Mode) -->
     <div id="moreModal" class="hidden pointer-events-auto hud-glass rounded-3xl p-5 max-w-sm w-full shadow-2xl text-left border border-slate-600/50">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-700/70">
         <div class="flex items-center gap-2">
           <span class="text-base">⚙️</span>
-          <h2 class="text-sm font-extrabold uppercase tracking-wider text-white">Z-Axis Cockpit &amp; More</h2>
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-white">Z-Axis Graphics &amp; More</h2>
         </div>
         <button id="btnCloseMore" type="button" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs font-bold">
           ✕
@@ -238,18 +227,16 @@
       </div>
 
       <div class="space-y-3 text-xs">
-        <!-- Sound Toggle -->
         <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
           <div>
             <div class="font-bold text-white">🔊 Realistic Cold-Gas Audio</div>
-            <div class="text-[10px] text-slate-400">Jet noise, road hum &amp; ticket chimes</div>
+            <div class="text-[10px] text-slate-400">Pressurized jet roar, warp surge &amp; road hum</div>
           </div>
           <button id="btnToggleAudio" type="button" class="px-3 py-1.5 rounded-lg font-bold text-[11px] bg-sky-500/25 text-sky-300 border border-sky-400/50">
             SOUND: ON
           </button>
         </div>
 
-        <!-- Thrust Mode: Hold vs Toggle Latch -->
         <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
           <div>
             <div class="font-bold text-white">🚀 Thrust Cruise Latch</div>
@@ -260,7 +247,6 @@
           </button>
         </div>
 
-        <!-- Traffic Density -->
         <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
           <div>
             <div class="font-bold text-white">🛸 Air Roadster Swarm</div>
@@ -272,12 +258,11 @@
           </div>
         </div>
 
-        <!-- Controls Guide -->
         <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 text-[11px] text-slate-300 space-y-1">
-          <div class="font-bold text-sky-300 mb-1">🕹️ Controls Summary:</div>
-          <div>• <strong>Mobile:</strong> Left <strong>Joystick</strong> to steer/pitch + Right <strong>THRUST</strong> button to fly!</div>
-          <div>• <strong>Laptop:</strong> Hold <strong>[SPACEBAR]</strong> for Cold-Gas Thrust + <strong>WASD / Arrows</strong> to steer.</div>
-          <div>• <strong>Recharge:</strong> Touch the highway road or collect white <strong>Saturn Orbs</strong> to refill Cold Gas!</div>
+          <div class="font-bold text-sky-300 mb-1">🕹️ Controls Guide:</div>
+          <div>• <strong>SPACE / 🚀 THRUST:</strong> Fires all 4 cold-gas jets to go <strong>STRAIGHT UP</strong> into the Z-Axis!</div>
+          <div>• <strong>WASD / Joystick:</strong> Drive <strong>Forward (W)</strong>, <strong>Backward (S)</strong>, <strong>Left (A)</strong> &amp; <strong>Right (D)</strong>!</div>
+          <div>• <strong>SHIFT / ⚡ WARP BOOST:</strong> 136 MPH Hyper-Warp speed!</div>
         </div>
       </div>
 
@@ -285,75 +270,57 @@
         RESUME FLIGHT
       </button>
     </div>
-
   </main>
 
-  <!-- BOTTOM MOBILE & LAPTOP ACCESSIBILITY CONTROLS: ONLY JOYSTICK (LEFT) + THRUST & MORE BUTTONS (RIGHT) -->
   <footer class="relative z-20 w-full px-3 pb-3 sm:px-7 sm:pb-5 pointer-events-none">
     <div class="max-w-7xl mx-auto flex items-end justify-between">
-      
-      <!-- LEFT: Clean Draggable Virtual Joystick ONLY (Optimized for Mobile Thumb) -->
       <div class="pointer-events-auto flex flex-col items-center">
         <div id="joystickZone" class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full hud-glass border-2 border-white/20 flex items-center justify-center shadow-2xl">
-          <!-- Subtle Crosshair Guides -->
           <div class="absolute inset-x-4 h-px bg-white/10 pointer-events-none"></div>
           <div class="absolute inset-y-4 w-px bg-white/10 pointer-events-none"></div>
-          <span class="absolute top-1.5 text-[8px] font-bold tracking-widest text-slate-400/80 pointer-events-none">UP</span>
-          <span class="absolute bottom-1.5 text-[8px] font-bold tracking-widest text-slate-400/80 pointer-events-none">DOWN</span>
-          <span class="absolute left-2 text-[8px] font-bold tracking-widest text-slate-400/80 pointer-events-none">L</span>
-          <span class="absolute right-2 text-[8px] font-bold tracking-widest text-slate-400/80 pointer-events-none">R</span>
+          <span class="absolute top-1.5 text-[8px] font-bold tracking-widest text-sky-300/90 pointer-events-none">FWD</span>
+          <span class="absolute bottom-1.5 text-[8px] font-bold tracking-widest text-slate-400/90 pointer-events-none">BACK</span>
+          <span class="absolute left-2 text-[8px] font-bold tracking-widest text-slate-400/90 pointer-events-none">L</span>
+          <span class="absolute right-2 text-[8px] font-bold tracking-widest text-slate-400/90 pointer-events-none">R</span>
 
-          <!-- Movable Thumb Stick Knob -->
-          <div id="joystickKnob" class="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-white/90 border-2 border-sky-300 shadow-[0_0_20px_rgba(255,255,255,0.6)] pointer-events-none flex items-center justify-center transition-transform duration-75" style="transform: translate(0px, 0px);">
-            <div class="w-4 h-4 rounded-full bg-slate-900/40"></div>
+          <div id="joystickKnob" class="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-white/95 border-2 border-sky-400 shadow-[0_0_22px_rgba(56,189,248,0.75)] pointer-events-none flex items-center justify-center transition-transform duration-75" style="transform: translate(0px, 0px);">
+            <div class="w-4 h-4 rounded-full bg-slate-900/45"></div>
           </div>
         </div>
-        <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-1">STEER / PITCH</span>
+        <span class="text-[9px] font-bold uppercase tracking-widest text-slate-300 mt-1">FWD / BACK / STEER</span>
       </div>
 
-      <!-- RIGHT: Primary THRUST Button (Hold Touch or Hold [SPACE] on Laptop) + Secondary Action Buttons (BOOST, 360 FLIP, MORE) -->
       <div class="pointer-events-auto flex items-end gap-2 sm:gap-3">
-        
-        <!-- Secondary Utility Column: MORE + 360° FLIP + BOOST -->
         <div class="flex flex-col items-end gap-1.5">
           <div class="flex items-center gap-1.5">
-            <!-- MORE Settings Button -->
             <button id="btnMore" type="button" class="ctrl-btn hud-glass rounded-xl px-3 py-2 border border-white/20 flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-200 shadow-lg">
               <span>⚙️</span>
               <span>MORE</span>
             </button>
 
-            <!-- 360° Barrel Roll Trick Button -->
-            <button id="btnFlip" type="button" class="ctrl-btn hud-glass rounded-xl px-3 py-2 border border-amber-400/50 bg-amber-500/15 text-[10px] font-extrabold uppercase tracking-wider text-amber-200 shadow-lg">
+            <button id="btnFlip" type="button" class="ctrl-btn hud-glass rounded-xl px-3 py-2 border border-sky-400/50 bg-sky-500/15 text-[10px] font-extrabold uppercase tracking-wider text-sky-200 shadow-lg">
               🔄 360° FLIP
             </button>
           </div>
 
-          <!-- Afterburner Speed BOOST Button -->
-          <button id="btnBoost" type="button" class="ctrl-btn hud-glass rounded-xl px-3.5 py-2 border border-orange-400/50 bg-orange-500/20 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-orange-200 shadow-lg">
-            <span>🔥</span>
-            <span>BOOST</span>
-            <span class="hidden sm:inline text-[9px] opacity-75 font-mono-tech">[SHIFT]</span>
+          <button id="btnBoost" type="button" class="ctrl-btn hud-glass rounded-xl px-3.5 py-2.5 border border-indigo-400/60 bg-indigo-500/25 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-indigo-100 shadow-lg">
+            <span>⚡</span>
+            <span>WARP BOOST</span>
+            <span class="hidden sm:inline text-[9px] opacity-80 font-mono-tech">[SHIFT]</span>
           </button>
         </div>
 
-        <!-- Giant Primary Z-AXIS COLD-GAS THRUST Button (Mapped to Touch & Laptop SPACEBAR) -->
-        <button id="btnThrust" type="button" class="ctrl-btn w-24 h-24 sm:w-28 sm:h-28 rounded-full hud-glass border-2 border-sky-300/80 bg-gradient-to-br from-sky-500/35 to-blue-600/45 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(56,189,248,0.35)]">
+        <button id="btnThrust" type="button" class="ctrl-btn w-24 h-24 sm:w-28 sm:h-28 rounded-full hud-glass border-2 border-sky-400/90 bg-gradient-to-br from-sky-500/40 to-blue-700/55 flex flex-col items-center justify-center shadow-[0_0_28px_rgba(14,165,233,0.45)]">
           <span class="text-lg sm:text-xl leading-none mb-0.5">🚀</span>
-          <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-white">THRUST</span>
+          <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-white">GO UP</span>
           <span id="thrustSubLabel" class="text-[8px] sm:text-[9px] font-mono-tech font-bold text-sky-200 mt-0.5">[SPACE]</span>
         </button>
-
       </div>
-
     </div>
   </footer>
 
   <script>
     (function () {
-      // ==========================================
-      // DOM ELEMENTS
-      // ==========================================
       const canvas = document.getElementById('gameCanvas');
       const calloutContainer = document.getElementById('calloutContainer');
       const scoreText = document.getElementById('scoreText');
@@ -367,7 +334,6 @@
       const gearZ = document.getElementById('gearZ');
 
       const centerToast = document.getElementById('centerToast');
-      const toastSignBox = document.getElementById('toastSignBox');
       const toastSignNum = document.getElementById('toastSignNum');
       const toastTitle = document.getElementById('toastTitle');
       const toastDesc = document.getElementById('toastDesc');
@@ -398,9 +364,6 @@
       const btnBoost = document.getElementById('btnBoost');
       const btnFlip = document.getElementById('btnFlip');
 
-      // ==========================================
-      // REALISTIC WEB AUDIO SYNTHESIZER (Matches Video Sound!)
-      // ==========================================
       let audioCtx = null;
       let soundEnabled = true;
       let thrusterNoiseGain = null;
@@ -417,7 +380,6 @@
         if (!audioCtx) {
           audioCtx = new AudioCtx();
 
-          // 1. Continuous Cold-Gas Jet White/Pink Noise Buffer
           const bufferSize = audioCtx.sampleRate * 2;
           const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
           const output = noiseBuffer.getChannelData(0);
@@ -427,7 +389,7 @@
             b0 = 0.997 * b0 + white * 0.029;
             b1 = 0.985 * b1 + white * 0.032;
             b2 = 0.950 * b2 + white * 0.048;
-            output[i] = (b0 + b1 + b2 + white * 0.18) * 0.35;
+            output[i] = (b0 + b1 + b2 + white * 0.18) * 0.36;
           }
 
           const whiteNoise = audioCtx.createBufferSource();
@@ -436,8 +398,8 @@
 
           thrusterFilter = audioCtx.createBiquadFilter();
           thrusterFilter.type = 'bandpass';
-          thrusterFilter.frequency.value = 950;
-          thrusterFilter.Q.value = 0.75;
+          thrusterFilter.frequency.value = 1000;
+          thrusterFilter.Q.value = 0.72;
 
           thrusterNoiseGain = audioCtx.createGain();
           thrusterNoiseGain.gain.value = 0.0001;
@@ -447,13 +409,12 @@
           thrusterNoiseGain.connect(audioCtx.destination);
           whiteNoise.start(0);
 
-          // Sub-bass turbine rumble for Cold-Gas Thrusters
           const subOsc = audioCtx.createOscillator();
           subOsc.type = 'sawtooth';
-          subOsc.frequency.value = 68;
+          subOsc.frequency.value = 66;
           const subFilter = audioCtx.createBiquadFilter();
           subFilter.type = 'lowpass';
-          subFilter.frequency.value = 140;
+          subFilter.frequency.value = 145;
           thrusterSubGain = audioCtx.createGain();
           thrusterSubGain.gain.value = 0.0001;
 
@@ -462,10 +423,9 @@
           thrusterSubGain.connect(audioCtx.destination);
           subOsc.start(0);
 
-          // 2. Ground Highway Synth Bass Hum (Exact low drone heard in video on road!)
           roadHumOsc = audioCtx.createOscillator();
           roadHumOsc.type = 'triangle';
-          roadHumOsc.frequency.value = 75;
+          roadHumOsc.frequency.value = 74;
           roadHumGain = audioCtx.createGain();
           roadHumGain.gain.value = 0.0001;
           roadHumOsc.connect(roadHumGain);
@@ -489,22 +449,20 @@
         }
 
         const now = audioCtx.currentTime;
-        // Cold-gas jet whoosh intensity
-        if (isThrusting) {
-          const targetNoise = isBoosting ? 0.42 : 0.28;
-          const targetFreq = isBoosting ? 1450 : 980 + Math.random() * 140;
+        if (isThrusting || isBoosting) {
+          const targetNoise = isBoosting ? 0.46 : 0.28;
+          const targetFreq = isBoosting ? 1680 : 1020 + Math.random() * 140;
           thrusterNoiseGain.gain.setTargetAtTime(targetNoise, now, 0.04);
-          thrusterSubGain.gain.setTargetAtTime(isBoosting ? 0.16 : 0.09, now, 0.05);
+          thrusterSubGain.gain.setTargetAtTime(isBoosting ? 0.18 : 0.09, now, 0.05);
           thrusterFilter.frequency.setTargetAtTime(targetFreq, now, 0.05);
         } else {
           thrusterNoiseGain.gain.setTargetAtTime(0.0001, now, 0.06);
           thrusterSubGain.gain.setTargetAtTime(0.0001, now, 0.06);
         }
 
-        // Ground road hum when driving on highway
         if (onGround && gameState === 'playing') {
           roadHumGain.gain.setTargetAtTime(0.11, now, 0.08);
-          roadHumOsc.frequency.setTargetAtTime(65 + speedRatio * 35, now, 0.08);
+          roadHumOsc.frequency.setTargetAtTime(64 + speedRatio * 38, now, 0.08);
         } else {
           roadHumGain.gain.setTargetAtTime(0.0001, now, 0.08);
         }
@@ -514,9 +472,7 @@
         if (!soundEnabled || !audioCtx) return;
         try {
           const now = audioCtx.currentTime;
-
           if (type === 'ticket') {
-            // Video's two-tone warning chime on speeding ticket / ground alert
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'square';
@@ -529,7 +485,6 @@
             osc.start(now);
             osc.stop(now + 0.29);
           } else if (type === 'orb' || type === 'landed') {
-            // Melodic retro chime when landing or collecting Saturn Charge Orb (0:19, 0:30, 0:52 in video)
             const notes = type === 'orb' ? [523.25, 659.25, 783.99, 1046.5] : [440, 554.37, 659.25];
             notes.forEach((freq, idx) => {
               const osc = audioCtx.createOscillator();
@@ -543,13 +498,24 @@
               osc.start(now + idx * 0.055);
               osc.stop(now + idx * 0.055 + 0.17);
             });
+          } else if (type === 'warp') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(640, now + 0.22);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
           } else if (type === 'nearmiss') {
-            // Subtle high-tech whoosh chime
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(520, now);
-            osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+            osc.frequency.setValueAtTime(540, now);
+            osc.frequency.exponentialRampToValueAtTime(920, now + 0.12);
             gain.gain.setValueAtTime(0.1, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
             osc.connect(gain);
@@ -569,28 +535,24 @@
             osc.start(now);
             osc.stop(now + 0.29);
           } else if (type === 'crash') {
-            // Low impact thud
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(140, now);
-            osc.frequency.exponentialRampToValueAtTime(32, now + 0.38);
+            osc.frequency.setValueAtTime(135, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.42);
             gain.gain.setValueAtTime(0.28, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.44);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(now);
-            osc.stop(now + 0.41);
+            osc.stop(now + 0.45);
           }
         } catch (err) {}
       }
 
-      // ==========================================
-      // FLOATING CALLOUTS & TOAST SYSTEM (Matches Video!)
-      // ==========================================
-      function spawnCenterCallout(text, colorClass = 'text-amber-200') {
+      function spawnCenterCallout(text, colorClass = 'text-slate-100') {
         const el = document.createElement('div');
-        el.className = `callout-anim fixed left-1/2 font-mono-tech text-xs sm:text-sm font-extrabold uppercase tracking-[0.18em] drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] ${colorClass}`;
+        el.className = `callout-anim fixed left-1/2 font-mono-tech text-xs sm:text-sm font-extrabold uppercase tracking-[0.2em] drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] ${colorClass}`;
         el.textContent = text;
         calloutContainer.appendChild(el);
         setTimeout(() => {
@@ -599,25 +561,16 @@
       }
 
       let toastTimer = null;
-      function showBannerToast(mode, headline, subtext) {
-        if (mode === 'ticket') {
-          // Crisp White Speeding Ticket Toast (0:35 in video)
-          centerToast.className = 'opacity-100 translate-y-0 pointer-events-none transition-all duration-300 max-w-xs sm:max-w-sm rounded-xl px-3.5 py-2.5 flex items-center gap-3 shadow-2xl bg-white text-slate-900 border border-slate-300';
-          toastSignBox.className = 'w-8 h-10 rounded border-2 border-slate-900 bg-white text-slate-900 flex flex-col items-center justify-center text-[7px] font-extrabold leading-none shrink-0';
-          toastSignNum.textContent = '35';
-          toastTitle.className = 'text-[11px] sm:text-xs font-extrabold tracking-wide uppercase text-rose-600';
-          toastDesc.className = 'text-[10px] sm:text-[11px] text-slate-600 font-medium';
-        } else {
-          // Sleek Dark Z-Axis Toast (0:05 in video)
-          centerToast.className = 'opacity-100 translate-y-0 pointer-events-none transition-all duration-300 max-w-xs sm:max-w-sm rounded-xl px-3.5 py-2.5 flex items-center gap-3 shadow-2xl bg-slate-900/95 text-white border border-slate-700';
-          toastSignBox.className = 'w-8 h-10 rounded border border-slate-400 bg-slate-950 text-white flex flex-col items-center justify-center text-[7px] font-extrabold leading-none shrink-0';
-          toastSignNum.textContent = '∞';
-          toastTitle.className = 'text-[11px] sm:text-xs font-extrabold tracking-wide uppercase text-white';
-          toastDesc.className = 'text-[10px] sm:text-[11px] text-slate-400';
-        }
-
+      function showBannerToast(signVal, headline, subtext, isTicket = false) {
+        toastSignNum.textContent = signVal;
         toastTitle.textContent = headline;
+        toastTitle.className = isTicket
+          ? 'text-[11px] sm:text-xs font-extrabold tracking-wide uppercase text-rose-600'
+          : 'text-[11px] sm:text-xs font-extrabold tracking-wide uppercase text-slate-900';
         toastDesc.textContent = subtext;
+
+        centerToast.classList.remove('opacity-0', '-translate-y-3');
+        centerToast.classList.add('opacity-100', 'translate-y-0');
 
         if (toastTimer) clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
@@ -626,236 +579,507 @@
         }, 3200);
       }
 
-      // ==========================================
-      // THREE.JS 3D WORLD & COOLER CYBER-ROADSTER MODELS
-      // ==========================================
+      function createSoftSmokeTexture() {
+        const c = document.createElement('canvas');
+        c.width = 128;
+        c.height = 128;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createRadialGradient(64, 64, 6, 64, 64, 60);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.96)');
+        grad.addColorStop(0.4, 'rgba(226, 232, 240, 0.62)');
+        grad.addColorStop(0.75, 'rgba(148, 163, 184, 0.22)');
+        grad.addColorStop(1, 'rgba(15, 23, 42, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 128, 128);
+        return new THREE.CanvasTexture(c);
+      }
+
+      function createHeadlightBeamTexture() {
+        const c = document.createElement('canvas');
+        c.width = 128;
+        c.height = 256;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 256, 0, 0);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.72)');
+        grad.addColorStop(0.38, 'rgba(224, 242, 254, 0.30)');
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(44, 256);
+        ctx.lineTo(84, 256);
+        ctx.lineTo(124, 0);
+        ctx.lineTo(4, 0);
+        ctx.closePath();
+        ctx.fill();
+        return new THREE.CanvasTexture(c);
+      }
+
+      function createHorizonGlowTexture() {
+        const c = document.createElement('canvas');
+        c.width = 32;
+        c.height = 256;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 0, 256);
+        grad.addColorStop(0.0, 'rgba(7, 11, 20, 0)');
+        grad.addColorStop(0.35, 'rgba(30, 45, 72, 0.65)');
+        grad.addColorStop(0.75, 'rgba(71, 95, 132, 0.95)');
+        grad.addColorStop(1.0, 'rgba(22, 32, 52, 1)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 32, 256);
+        return new THREE.CanvasTexture(c);
+      }
+
+      const smokeTex = createSoftSmokeTexture();
+      const beamTex = createHeadlightBeamTexture();
+      const horizonTex = createHorizonGlowTexture();
+
+      function getViewport() {
+        const w = window.innerWidth || document.documentElement.clientWidth || 960;
+        const h = window.innerHeight || document.documentElement.clientHeight || 540;
+        return { w: Math.max(300, w), h: Math.max(200, h) };
+      }
+
+      const vp = getViewport();
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(vp.w, vp.h);
 
       const scene = new THREE.Scene();
-      const bgFogColor = new THREE.Color(0x101520);
-      scene.background = bgFogColor;
-      scene.fog = new THREE.FogExp2(0x101520, 0.0045);
+      scene.background = new THREE.Color(0x070b14);
+      scene.fog = new THREE.FogExp2(0x0d1526, 0.0024);
 
-      const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.5, 420);
-      camera.position.set(0, 8, 15);
+      const camera = new THREE.PerspectiveCamera(58, vp.w / vp.h, 0.5, 650);
+      camera.position.set(0, 12, 15);
 
-      // Lighting matching the crisp studio-matte look in the video
-      const hemiLight = new THREE.HemisphereLight(0xe2e8f0, 0x1e293b, 0.85);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+      scene.add(ambientLight);
+
+      const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x1e293b, 0.95);
       scene.add(hemiLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-      dirLight.position.set(25, 70, 45);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+      dirLight.position.set(30, 90, 55);
       scene.add(dirLight);
 
-      // Shared Materials
-      const matteSilverMat = new THREE.MeshStandardMaterial({ color: 0xd8dee9, roughness: 0.35, metalness: 0.45 });
-      const brushedSteelMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.4, metalness: 0.55 });
-      const darkTrimMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
-      const glassCanopyMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.12, metalness: 0.85 });
-      const redLightBarMat = new THREE.MeshBasicMaterial({ color: 0xff4d4d });
-      const whiteHeadlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const thrusterCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
-      const thrusterOuterMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.58 });
-      const boostFlameMat = new THREE.MeshBasicMaterial({ color: 0xfb923c, transparent: true, opacity: 0.9 });
+      const playerUnderLight = new THREE.PointLight(0x38bdf8, 2.5, 24);
+      scene.add(playerUnderLight);
 
-      // Create the Sleek Angular Cyber-Roadster / Cybercab Model from the Video
+      const skylineGroup = new THREE.Group();
+      const backdropGeo = new THREE.PlaneGeometry(980, 125);
+      const backdropMat = new THREE.MeshBasicMaterial({
+        map: horizonTex,
+        transparent: true,
+        fog: false,
+        depthWrite: false
+      });
+      const backdropMesh = new THREE.Mesh(backdropGeo, backdropMat);
+      backdropMesh.position.set(0, 46, -320);
+      skylineGroup.add(backdropMesh);
+
+      const bldgSilhouetteMat = new THREE.MeshBasicMaterial({ color: 0x050811, fog: false });
+      const bldgMidToneMat = new THREE.MeshBasicMaterial({ color: 0x0a101d, fog: false });
+      const windowGlowMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, fog: false });
+
+      for (let i = -48; i <= 48; i++) {
+        const w = 6.5 + (Math.abs(i * 17) % 10);
+        const h = 10 + (Math.abs(i * 31 + 9) % 38) + (Math.abs(i) < 12 ? 12 : 0);
+        const d = 6 + (Math.abs(i * 13) % 8);
+        const bGeo = new THREE.BoxGeometry(w, h, d);
+        const bMesh = new THREE.Mesh(bGeo, i % 2 === 0 ? bldgSilhouetteMat : bldgMidToneMat);
+        const bx = i * 8.2;
+        const bz = -295 - (Math.abs(i * 7) % 18);
+        bMesh.position.set(bx, h * 0.5 - 1.5, bz);
+        skylineGroup.add(bMesh);
+
+        if (h > 28 && i % 3 === 0) {
+          const winStrip = new THREE.Mesh(new THREE.BoxGeometry(w * 0.65, 0.45, 0.2), windowGlowMat);
+          winStrip.position.set(bx, h - 3.0, bz + d * 0.5 + 0.1);
+          skylineGroup.add(winStrip);
+        }
+      }
+      scene.add(skylineGroup);
+
+      const warpTunnelGroup = new THREE.Group();
+      const warpGridHelper = new THREE.GridHelper(460, 52, 0x38bdf8, 0x1e293b);
+      warpGridHelper.position.set(0, 54, -140);
+      if (Array.isArray(warpGridHelper.material)) {
+        warpGridHelper.material.forEach(m => {
+          m.transparent = true;
+          m.opacity = 0.0;
+        });
+      } else if (warpGridHelper.material) {
+        warpGridHelper.material.transparent = true;
+        warpGridHelper.material.opacity = 0.0;
+      }
+      warpTunnelGroup.add(warpGridHelper);
+
+      const streakLines = [];
+      const streakGeo = new THREE.BoxGeometry(0.1, 0.1, 18);
+      const streakMat = new THREE.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.0 });
+      for (let i = 0; i < 48; i++) {
+        const line = new THREE.Mesh(streakGeo, streakMat);
+        line.position.set(
+          (Math.random() - 0.5) * 65,
+          2 + Math.random() * 48,
+          -Math.random() * 220
+        );
+        warpTunnelGroup.add(line);
+        streakLines.push(line);
+      }
+      scene.add(warpTunnelGroup);
+
+      const playerBodyMat = new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        emissive: 0x1e293b,
+        emissiveIntensity: 0.45,
+        roughness: 0.18,
+        metalness: 0.72
+      });
+      const playerFenderMat = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        emissive: 0x0f172a,
+        emissiveIntensity: 0.4,
+        roughness: 0.22,
+        metalness: 0.68
+      });
+      const trafficBodyMat = new THREE.MeshStandardMaterial({
+        color: 0xdbeafe,
+        emissive: 0x0f172a,
+        emissiveIntensity: 0.35,
+        roughness: 0.28,
+        metalness: 0.55
+      });
+      const blackGlassMat = new THREE.MeshStandardMaterial({
+        color: 0x050811,
+        emissive: 0x0c192c,
+        emissiveIntensity: 0.35,
+        roughness: 0.08,
+        metalness: 0.92
+      });
+      const darkFasciaMat = new THREE.MeshLambertMaterial({ color: 0x070a12 });
+      const carbonTrimMat = new THREE.MeshLambertMaterial({ color: 0x111827 });
+      const alloyRimMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+      const redTailGlowMat = new THREE.MeshBasicMaterial({ color: 0xff1e38 });
+      const whiteHeadGlowMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const cyanAccentMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+      const blueCoreJetMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98 });
+      const blueOuterJetMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.82 });
+      const shockRingMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.9 });
+      const shiftHyperJetMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.95 });
+
+      const headlightBeamMat = new THREE.MeshBasicMaterial({
+        map: beamTex,
+        transparent: true,
+        opacity: 0.72,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+
       function createCyberRoadster(isPlayer = false, hasThrusters = true) {
         const root = new THREE.Group();
         const bodyGroup = new THREE.Group();
         root.add(bodyGroup);
 
-        const paintMat = isPlayer ? matteSilverMat : brushedSteelMat;
+        const bodyMat = isPlayer ? playerBodyMat : trafficBodyMat;
+        const fenderMat = isPlayer ? playerFenderMat : trafficBodyMat;
 
-        // Lower Dark Chassis Skirt
-        const skirt = new THREE.Mesh(new THREE.BoxGeometry(2.52, 0.24, 4.75), darkTrimMat);
-        skirt.position.y = 0.24;
-        bodyGroup.add(skirt);
+        const undertray = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.20, 4.96), darkFasciaMat);
+        undertray.position.y = 0.22;
+        bodyGroup.add(undertray);
 
-        // Main Sculpted Lower Body
-        const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(2.56, 0.56, 4.8), paintMat);
-        lowerBody.position.y = 0.58;
-        bodyGroup.add(lowerBody);
+        if (isPlayer) {
+          const splitterGlow = new THREE.Mesh(new THREE.BoxGeometry(2.50, 0.04, 0.08), cyanAccentMat);
+          splitterGlow.position.set(0, 0.16, -2.47);
+          bodyGroup.add(splitterGlow);
+        }
 
-        // Sloped Wedge Hood (Front)
-        const hood = new THREE.Mesh(new THREE.BoxGeometry(2.46, 0.28, 1.55), paintMat);
-        hood.position.set(0, 0.86, -1.55);
-        hood.rotation.x = 0.14;
-        bodyGroup.add(hood);
-
-        // Fastback Sloped Glass Canopy + Roof Pillars
-        const canopy = new THREE.Mesh(new THREE.BoxGeometry(2.16, 0.48, 2.55), glassCanopyMat);
-        canopy.position.set(0, 1.04, -0.05);
-        bodyGroup.add(canopy);
-
-        const roofEdgeLeft = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.46, 2.58), paintMat);
-        roofEdgeLeft.position.set(-1.06, 1.04, -0.05);
-        const roofEdgeRight = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.46, 2.58), paintMat);
-        roofEdgeRight.position.set(1.06, 1.04, -0.05);
-        bodyGroup.add(roofEdgeLeft, roofEdgeRight);
-
-        // Rear Decklid
-        const rearDeck = new THREE.Mesh(new THREE.BoxGeometry(2.48, 0.34, 1.25), paintMat);
-        rearDeck.position.set(0, 0.92, 1.72);
-        rearDeck.rotation.x = -0.12;
-        bodyGroup.add(rearDeck);
-
-        // Iconic Full-Width Glowing Red Rear LED Bar (Matches Video!)
-        const tailBar = new THREE.Mesh(new THREE.BoxGeometry(2.44, 0.14, 0.08), redLightBarMat);
-        tailBar.position.set(0, 0.72, 2.41);
-        bodyGroup.add(tailBar);
-
-        // Full-Width Front Laser Headlight Bar
-        const headBar = new THREE.Mesh(new THREE.BoxGeometry(2.40, 0.12, 0.08), whiteHeadlightMat);
-        headBar.position.set(0, 0.62, -2.41);
-        bodyGroup.add(headBar);
-
-        // 4 Wheels
-        const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 14);
-        wheelGeo.rotateZ(Math.PI / 2);
-        [
-          [-1.26, 0.38, -1.52],
-          [1.26, 0.38, -1.52],
-          [-1.26, 0.38, 1.52],
-          [1.26, 0.38, 1.52]
-        ].forEach(([wx, wy, wz]) => {
-          const w = new THREE.Mesh(wheelGeo, darkTrimMat);
-          w.position.set(wx, wy, wz);
-          bodyGroup.add(w);
+        [-0.85, -0.42, 0, 0.42, 0.85].forEach(fx => {
+          const fin = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.45), carbonTrimMat);
+          fin.position.set(fx, 0.22, 2.32);
+          bodyGroup.add(fin);
         });
 
-        // 4 Corner Downward Cold-Gas Thruster Plumes (Exact bright white/blue cones from video!)
+        const centerCore = new THREE.Mesh(new THREE.BoxGeometry(2.38, 0.50, 4.86), bodyMat);
+        centerCore.position.y = 0.54;
+        bodyGroup.add(centerCore);
+
+        [-1.12, 1.12].forEach(sideX => {
+          const frontFender = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.52, 1.85), fenderMat);
+          frontFender.position.set(sideX, 0.58, -1.42);
+          frontFender.rotation.z = sideX < 0 ? 0.06 : -0.06;
+          bodyGroup.add(frontFender);
+
+          const rearHaunch = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.56, 2.05), fenderMat);
+          rearHaunch.position.set(sideX, 0.62, 1.32);
+          rearHaunch.rotation.z = sideX < 0 ? 0.08 : -0.08;
+          bodyGroup.add(rearHaunch);
+
+          const sideIntake = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.32, 1.25), darkFasciaMat);
+          sideIntake.position.set(sideX * 1.08, 0.52, 0.05);
+          bodyGroup.add(sideIntake);
+        });
+
+        const frontHood = new THREE.Mesh(new THREE.BoxGeometry(2.26, 0.24, 1.68), bodyMat);
+        frontHood.position.set(0, 0.82, -1.56);
+        frontHood.rotation.x = 0.16;
+        bodyGroup.add(frontHood);
+
+        const windshield = new THREE.Mesh(new THREE.BoxGeometry(2.04, 0.42, 1.35), blackGlassMat);
+        windshield.position.set(0, 1.00, -0.68);
+        windshield.rotation.x = 0.28;
+        bodyGroup.add(windshield);
+
+        const roofDome = new THREE.Mesh(new THREE.BoxGeometry(2.06, 0.44, 1.45), blackGlassMat);
+        roofDome.position.set(0, 1.07, 0.15);
+        bodyGroup.add(roofDome);
+
+        const fastbackGlass = new THREE.Mesh(new THREE.BoxGeometry(1.94, 0.38, 1.35), blackGlassMat);
+        fastbackGlass.position.set(0, 0.98, 1.15);
+        fastbackGlass.rotation.x = -0.22;
+        bodyGroup.add(fastbackGlass);
+
+        if (isPlayer) {
+          const dashScreen = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.24, 0.05), cyanAccentMat);
+          dashScreen.position.set(0, 0.96, -0.45);
+          dashScreen.rotation.x = -0.2;
+          bodyGroup.add(dashScreen);
+        }
+
+        [-1.02, 1.02].forEach(rx => {
+          const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.40, 2.75), bodyMat);
+          pillar.position.set(rx, 1.02, 0.15);
+          bodyGroup.add(pillar);
+
+          const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.09, 0.18), bodyMat);
+          mirror.position.set(rx * 1.24, 0.88, -0.82);
+          bodyGroup.add(mirror);
+        });
+
+        const rearFascia = new THREE.Mesh(new THREE.BoxGeometry(2.50, 0.50, 0.12), darkFasciaMat);
+        rearFascia.position.set(0, 0.62, 2.41);
+        bodyGroup.add(rearFascia);
+
+        const topTailBar = new THREE.Mesh(new THREE.BoxGeometry(2.48, 0.09, 0.14), redTailGlowMat);
+        topTailBar.position.set(0, 0.84, 2.43);
+        const botTailBar = new THREE.Mesh(new THREE.BoxGeometry(2.48, 0.06, 0.14), redTailGlowMat);
+        botTailBar.position.set(0, 0.40, 2.43);
+        const leftTailBar = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.48, 0.14), redTailGlowMat);
+        leftTailBar.position.set(-1.19, 0.62, 2.43);
+        const rightTailBar = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.48, 0.14), redTailGlowMat);
+        rightTailBar.position.set(1.19, 0.62, 2.43);
+        const centerBrakeBadge = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.04, 0.14), whiteHeadGlowMat);
+        centerBrakeBadge.position.set(0, 0.62, 2.44);
+        bodyGroup.add(topTailBar, botTailBar, leftTailBar, rightTailBar, centerBrakeBadge);
+
+        const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(2.36, 0.06, 0.34), carbonTrimMat);
+        spoilerWing.position.set(0, 0.94, 2.28);
+        bodyGroup.add(spoilerWing);
+
+        const frontLightBar = new THREE.Mesh(new THREE.BoxGeometry(2.42, 0.10, 0.10), whiteHeadGlowMat);
+        frontLightBar.position.set(0, 0.60, -2.43);
+        bodyGroup.add(frontLightBar);
+
+        const beamGeo = new THREE.PlaneGeometry(5.6, 14.5);
+        beamGeo.rotateX(-Math.PI / 2);
+        const headlightCone = new THREE.Mesh(beamGeo, headlightBeamMat);
+        headlightCone.position.set(0, 0.05, -9.6);
+        root.add(headlightCone);
+
+        const tireGeo = new THREE.CylinderGeometry(0.40, 0.40, 0.32, 16);
+        tireGeo.rotateZ(Math.PI / 2);
+        const rimGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.34, 12);
+        rimGeo.rotateZ(Math.PI / 2);
+
+        [
+          [-1.30, 0.40, -1.52],
+          [1.30, 0.40, -1.52],
+          [-1.32, 0.42, 1.52],
+          [1.32, 0.42, 1.52]
+        ].forEach(([wx, wy, wz]) => {
+          const tire = new THREE.Mesh(tireGeo, darkFasciaMat);
+          tire.position.set(wx, wy, wz);
+          const rim = new THREE.Mesh(rimGeo, alloyRimMat);
+          rim.position.set(wx, wy, wz);
+          bodyGroup.add(tire, rim);
+        });
+
         const thrusterGroup = new THREE.Group();
-        const innerConeGeo = new THREE.ConeGeometry(0.28, 3.1, 10);
-        innerConeGeo.translate(0, -1.55, 0);
-        const outerConeGeo = new THREE.ConeGeometry(0.45, 4.1, 10);
-        outerConeGeo.translate(0, -2.05, 0);
+        const innerCone = new THREE.ConeGeometry(0.26, 3.1, 12);
+        innerCone.translate(0, -1.55, 0);
+        const outerCone = new THREE.ConeGeometry(0.48, 4.2, 12);
+        outerCone.translate(0, -2.1, 0);
+        const diamondRingGeo = new THREE.TorusGeometry(0.30, 0.05, 8, 16);
+        diamondRingGeo.rotateX(Math.PI / 2);
 
         const plumes = [];
         [
-          [-1.02, 0.18, -1.58],
-          [1.02, 0.18, -1.58],
-          [-1.02, 0.18, 1.58],
-          [1.02, 0.18, 1.58]
+          [-1.08, 0.22, -1.52],
+          [1.08, 0.22, -1.52],
+          [-1.08, 0.22, 1.52],
+          [1.08, 0.22, 1.52]
         ].forEach(([nx, ny, nz]) => {
-          const inner = new THREE.Mesh(innerConeGeo, thrusterCoreMat);
+          const inner = new THREE.Mesh(innerCone, blueCoreJetMat);
           inner.position.set(nx, ny, nz);
-          const outer = new THREE.Mesh(outerConeGeo, thrusterOuterMat);
+          const outer = new THREE.Mesh(outerCone, blueOuterJetMat);
           outer.position.set(nx, ny, nz);
-          thrusterGroup.add(inner, outer);
-          plumes.push({ inner, outer });
+          const ring = new THREE.Mesh(diamondRingGeo, shockRingMat);
+          ring.position.set(nx, ny - 0.85, nz);
+          thrusterGroup.add(inner, outer, ring);
+          plumes.push({ inner, outer, ring });
         });
 
-        let boostJet = null;
+        let boostGroup = null;
         if (isPlayer) {
-          const boostGeo = new THREE.ConeGeometry(0.42, 3.4, 10);
-          boostGeo.rotateX(Math.PI / 2);
-          boostGeo.translate(0, 0.52, 4.1);
-          boostJet = new THREE.Mesh(boostGeo, boostFlameMat);
-          boostJet.visible = false;
-          bodyGroup.add(boostJet);
+          boostGroup = new THREE.Group();
+          const bGeo = new THREE.ConeGeometry(0.36, 4.6, 12);
+          bGeo.rotateX(Math.PI / 2);
+          [-0.65, 0.65].forEach(bx => {
+            const bMesh = new THREE.Mesh(bGeo, shiftHyperJetMat);
+            bMesh.position.set(bx, 0.52, 4.5);
+            boostGroup.add(bMesh);
+          });
+          boostGroup.visible = false;
+          bodyGroup.add(boostGroup);
         }
 
         thrusterGroup.visible = hasThrusters;
         bodyGroup.add(thrusterGroup);
 
-        return { root, bodyGroup, thrusterGroup, plumes, boostJet };
+        return { root, bodyGroup, thrusterGroup, plumes, boostGroup, headlightCone, spoilerWing };
       }
 
       const playerMesh = createCyberRoadster(true, true);
       scene.add(playerMesh.root);
 
-      // ==========================================
-      // INFINITE 3D HIGHWAY, CROSSWALKS & TRAFFIC LIGHTS
-      // ==========================================
       const roadSegments = [];
-      const SEG_LEN = 72;
+      const SEG_LEN = 74;
       const NUM_SEGS = 7;
       const ROAD_W = 24;
 
-      const roadMat = new THREE.MeshStandardMaterial({ color: 0x151b26, roughness: 0.92 });
-      const groundMat = new THREE.MeshStandardMaterial({ color: 0x101520, roughness: 0.98 });
-      const yellowMat = new THREE.MeshBasicMaterial({ color: 0xeab308 });
-      const whiteMat = new THREE.MeshBasicMaterial({ color: 0xf1f5f9 });
-      const poleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
-      const trafficOrangeMat = new THREE.MeshBasicMaterial({ color: 0xf97316 });
+      const roadAsphaltMat = new THREE.MeshBasicMaterial({ color: 0x111724 });
+      const cityGridMat = new THREE.MeshBasicMaterial({ color: 0x090d16 });
+      const blockBuildingMat = new THREE.MeshLambertMaterial({ color: 0x111827, emissive: 0x070a12 });
+      const yellowLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+      const whiteLineMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
+      const faintGridLineMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+      const poleMetalMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+
+      const redSignalMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+      const yellowSignalMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+      const greenSignalMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+      const streetLampMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
 
       function buildHighwaySegment(idx) {
         const seg = new THREE.Group();
         seg.position.z = -idx * SEG_LEN;
 
-        // Ground Plane
-        const groundGeo = new THREE.PlaneGeometry(220, SEG_LEN);
+        const groundGeo = new THREE.PlaneGeometry(340, SEG_LEN);
         groundGeo.rotateX(-Math.PI / 2);
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.position.y = -0.05;
+        const ground = new THREE.Mesh(groundGeo, cityGridMat);
+        ground.position.y = -0.06;
         seg.add(ground);
 
-        // 4-Lane Highway Roadway
+        for (let bx = -135; bx <= 135; bx += 28) {
+          if (Math.abs(bx) < 32) continue;
+          const sideLineGeo = new THREE.PlaneGeometry(0.18, SEG_LEN);
+          sideLineGeo.rotateX(-Math.PI / 2);
+          const sideLine = new THREE.Mesh(sideLineGeo, faintGridLineMat);
+          sideLine.position.set(bx, -0.02, 0);
+          seg.add(sideLine);
+
+          const padH = 1.2 + (Math.abs(bx * 7 + idx * 13) % 6) * 1.4;
+          const pad = new THREE.Mesh(new THREE.BoxGeometry(16, padH, 22), blockBuildingMat);
+          pad.position.set(bx, padH * 0.5 - 0.05, 10);
+          seg.add(pad);
+        }
+
         const roadGeo = new THREE.PlaneGeometry(ROAD_W, SEG_LEN);
         roadGeo.rotateX(-Math.PI / 2);
-        const road = new THREE.Mesh(roadGeo, roadMat);
+        const road = new THREE.Mesh(roadGeo, roadAsphaltMat);
         seg.add(road);
 
-        // Double Yellow Center Line
         const yGeo = new THREE.PlaneGeometry(0.18, SEG_LEN);
         yGeo.rotateX(-Math.PI / 2);
-        const y1 = new THREE.Mesh(yGeo, yellowMat);
-        y1.position.set(-0.2, 0.02, 0);
-        const y2 = new THREE.Mesh(yGeo, yellowMat);
-        y2.position.set(0.2, 0.02, 0);
+        const y1 = new THREE.Mesh(yGeo, yellowLineMat);
+        y1.position.set(-0.22, 0.02, 0);
+        const y2 = new THREE.Mesh(yGeo, yellowLineMat);
+        y2.position.set(0.22, 0.02, 0);
         seg.add(y1, y2);
 
-        // Solid White Outer Edges
-        const wGeo = new THREE.PlaneGeometry(0.24, SEG_LEN);
+        const wGeo = new THREE.PlaneGeometry(0.26, SEG_LEN);
         wGeo.rotateX(-Math.PI / 2);
-        const wL = new THREE.Mesh(wGeo, whiteMat);
+        const wL = new THREE.Mesh(wGeo, whiteLineMat);
         wL.position.set(-ROAD_W / 2 + 0.25, 0.02, 0);
-        const wR = new THREE.Mesh(wGeo, whiteMat);
+        const wR = new THREE.Mesh(wGeo, whiteLineMat);
         wR.position.set(ROAD_W / 2 - 0.25, 0.02, 0);
         seg.add(wL, wR);
 
-        // Dashed Lane Dividers
-        const dashGeo = new THREE.PlaneGeometry(0.18, 3.0);
+        const dashGeo = new THREE.PlaneGeometry(0.18, 3.2);
         dashGeo.rotateX(-Math.PI / 2);
         for (let z = -SEG_LEN / 2 + 6; z < SEG_LEN / 2 - 10; z += 8) {
           [-ROAD_W / 4, ROAD_W / 4].forEach(lx => {
-            const d = new THREE.Mesh(dashGeo, whiteMat);
+            const d = new THREE.Mesh(dashGeo, whiteLineMat);
             d.position.set(lx, 0.02, z);
             seg.add(d);
           });
         }
 
-        // Cross Street & Zebra Crosswalk
-        const crossGeo = new THREE.PlaneGeometry(220, 12);
+        const crossGeo = new THREE.PlaneGeometry(340, 12);
         crossGeo.rotateX(-Math.PI / 2);
-        const cross = new THREE.Mesh(crossGeo, roadMat);
+        const cross = new THREE.Mesh(crossGeo, roadAsphaltMat);
         cross.position.set(0, 0.01, -SEG_LEN / 2 + 6);
         seg.add(cross);
 
-        // Crosswalk Bars
-        const zebraGeo = new THREE.PlaneGeometry(1.05, 3.0);
+        const crossDashGeo = new THREE.PlaneGeometry(3.2, 0.18);
+        crossDashGeo.rotateX(-Math.PI / 2);
+        for (let cx = -150; cx <= 150; cx += 9) {
+          if (Math.abs(cx) < ROAD_W / 2 + 4) continue;
+          const cd = new THREE.Mesh(crossDashGeo, whiteLineMat);
+          cd.position.set(cx, 0.03, -SEG_LEN / 2 + 6);
+          seg.add(cd);
+        }
+
+        const zebraGeo = new THREE.PlaneGeometry(1.05, 3.2);
         zebraGeo.rotateX(-Math.PI / 2);
         for (let zx = -ROAD_W / 2 + 1.6; zx <= ROAD_W / 2 - 1.6; zx += 2.1) {
-          const zBar = new THREE.Mesh(zebraGeo, whiteMat);
-          zBar.position.set(zx, 0.03, -SEG_LEN / 2 + 13.5);
+          const zBar = new THREE.Mesh(zebraGeo, whiteLineMat);
+          zBar.position.set(zx, 0.03, -SEG_LEN / 2 + 13.8);
           seg.add(zBar);
         }
 
-        // Traffic Signal Poles on Both Sides (Matches Video!)
-        [-ROAD_W / 2 - 2.4, ROAD_W / 2 + 2.4].forEach(px => {
-          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 6.0, 8), poleMat);
-          pole.position.set(px, 3.0, -SEG_LEN / 2 + 12);
+        [-ROAD_W / 2 - 2.2, ROAD_W / 2 + 2.2].forEach(px => {
+          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 6.2, 8), poleMetalMat);
+          pole.position.set(px, 3.1, -SEG_LEN / 2 + 12);
           seg.add(pole);
 
-          const box = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.5), poleMat);
-          box.position.set(px, 6.1, -SEG_LEN / 2 + 12);
-          seg.add(box);
+          const housing = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.55, 0.45), darkFasciaMat);
+          housing.position.set(px, 6.3, -SEG_LEN / 2 + 12);
+          seg.add(housing);
 
-          const glow = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.4, 0.56), trafficOrangeMat);
-          glow.position.set(px, 6.35, -SEG_LEN / 2 + 12);
-          seg.add(glow);
+          const dotGeo = new THREE.SphereGeometry(0.17, 8, 8);
+          const rDot = new THREE.Mesh(dotGeo, redSignalMat);
+          rDot.position.set(px, 6.75, -SEG_LEN / 2 + 12.24);
+          const yDot = new THREE.Mesh(dotGeo, yellowSignalMat);
+          yDot.position.set(px, 6.30, -SEG_LEN / 2 + 12.24);
+          const gDot = new THREE.Mesh(dotGeo, greenSignalMat);
+          gDot.position.set(px, 5.85, -SEG_LEN / 2 + 12.24);
+          seg.add(rDot, yDot, gDot);
+        });
+
+        [-ROAD_W / 2 - 1.5, ROAD_W / 2 + 1.5].forEach(lx => {
+          const sPole = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.14, 9.2, 8), poleMetalMat);
+          sPole.position.set(lx, 4.6, 12);
+          seg.add(sPole);
+
+          const armLen = lx < 0 ? 2.6 : -2.6;
+          const arm = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.12, 0.12), poleMetalMat);
+          arm.position.set(lx + armLen * 0.5, 9.15, 12);
+          seg.add(arm);
+
+          const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.16, 0.38), streetLampMat);
+          bulb.position.set(lx + armLen, 9.08, 12);
+          seg.add(bulb);
         });
 
         scene.add(seg);
@@ -866,36 +1090,33 @@
         roadSegments.push(buildHighwaySegment(i));
       }
 
-      // ==========================================
-      // BILLOWING VOLUMETRIC 3D SMOKE PARTICLE POOL
-      // ==========================================
       const smokePool = [];
       const MAX_SMOKE = 260;
-      const smokeSphereGeo = new THREE.SphereGeometry(0.7, 8, 8);
 
       for (let i = 0; i < MAX_SMOKE; i++) {
-        const mat = new THREE.MeshBasicMaterial({
-          color: 0xdbeafe,
+        const mat = new THREE.SpriteMaterial({
+          map: smokeTex,
+          color: 0xf8fafc,
           transparent: true,
           opacity: 0,
           depthWrite: false
         });
-        const mesh = new THREE.Mesh(smokeSphereGeo, mat);
-        mesh.visible = false;
-        scene.add(mesh);
-        smokePool.push({ mesh, active: false, vx: 0, vy: 0, vz: 0, life: 0, maxLife: 0.65 });
+        const sprite = new THREE.Sprite(mat);
+        sprite.visible = false;
+        scene.add(sprite);
+        smokePool.push({ sprite, active: false, vx: 0, vy: 0, vz: 0, life: 0, maxLife: 0.7 });
       }
 
       let smokeIdx = 0;
-      function emitSmoke(x, y, z, vx, vy, vz, scale = 0.85, maxLife = 0.65, hexColor = 0xe2e8f0) {
+      function emitCloudSmoke(x, y, z, vx, vy, vz, scale = 2.4, maxLife = 0.75, tintHex = 0xf8fafc) {
         const p = smokePool[smokeIdx];
         smokeIdx = (smokeIdx + 1) % MAX_SMOKE;
         p.active = true;
-        p.mesh.visible = true;
-        p.mesh.position.set(x, y, z);
-        p.mesh.scale.setScalar(scale);
-        p.mesh.material.color.setHex(hexColor);
-        p.mesh.material.opacity = 0.52;
+        p.sprite.visible = true;
+        p.sprite.position.set(x, y, z);
+        p.sprite.scale.set(scale, scale, 1);
+        p.sprite.material.color.setHex(tintHex);
+        p.sprite.material.opacity = 0.62;
         p.vx = vx;
         p.vy = vy;
         p.vz = vz;
@@ -903,26 +1124,18 @@
         p.maxLife = maxLife;
       }
 
-      // ==========================================
-      // GAME STATE, TRAFFIC SWARM & SATURN ORBS
-      // ==========================================
       const MAX_COLD_GAS = 20.0;
       let difficulty = 'easy';
-      let thrustLatchMode = false; // False = Hold Space/Thrust (like video); True = Toggle Latch
+      let thrustLatchMode = false;
       let thrustLatchedOn = false;
 
       let gameState = 'playing';
       let score = 0;
       let bestScore = 17381;
-      try {
-        const saved = parseInt(localStorage.getItem('zaxis_best_score') || '17381', 10);
-        if (!isNaN(saved)) bestScore = Math.max(17381, saved);
-      } catch (e) {}
-
       let nearMisses = 0;
       let tricksCount = 0;
-      let currentCombo = 1;
-      let maxCombo = 1;
+      let currentCombo = 0;
+      let maxCombo = 0;
       let airtimeSec = 0;
       let currentFlightScore = 0;
       let ticketCooldown = 0;
@@ -941,15 +1154,16 @@
       const joystick = { x: 0, y: 0, active: false };
 
       const player = {
-        x: 1.8,
-        y: 8.0,
-        z: 0,
+        x: 2.2,
+        y: 0.0,
+        z: 0.0,
         vx: 0,
         vy: 0,
-        speedMph: 47,
+        vz: 0,
+        speedMph: 48,
         coldGas: MAX_COLD_GAS,
         depletedLock: false,
-        onGround: false,
+        onGround: true,
         thrusting: false,
         boosting: false,
         flipMode: null,
@@ -960,7 +1174,7 @@
       const groundTraffic = [];
       const saturnOrbs = [];
 
-      function populateWorld() {
+      function populateTrafficWorld() {
         airRoadsters.forEach(a => scene.remove(a.mesh.root));
         groundTraffic.forEach(g => scene.remove(g.mesh.root));
         saturnOrbs.forEach(o => scene.remove(o.group));
@@ -971,9 +1185,9 @@
         const airCount = difficulty === 'easy' ? 22 : 34;
         const groundCount = difficulty === 'easy' ? 10 : 15;
 
-        // 1. Flying Air Roadsters with 4-corner thrusters & smoke trails
         for (let i = 0; i < airCount; i++) {
           const mesh = createCyberRoadster(false, true);
+          mesh.headlightCone.visible = false;
           scene.add(mesh.root);
           const item = {
             mesh,
@@ -984,11 +1198,11 @@
             z: -25 - Math.random() * 290,
             speed: 35 + Math.random() * 42,
             phase: Math.random() * Math.PI * 2,
-            waveAmp: 1.5 + Math.random() * 4.5,
+            waveAmp: 1.5 + Math.random() * 4.2,
             swayAmp: (Math.random() - 0.5) * 6,
             roll: (Math.random() - 0.5) * 0.65,
             pitch: (Math.random() - 0.5) * 0.35,
-            rollRate: Math.random() < 0.4 ? (Math.random() < 0.5 ? 2.1 : -2.1) : 0,
+            rollRate: Math.random() < 0.38 ? (Math.random() < 0.5 ? 2.1 : -2.1) : 0,
             missed: false
           };
           item.x = item.baseX;
@@ -997,10 +1211,10 @@
           airRoadsters.push(item);
         }
 
-        // 2. Ground Highway Traffic Roadsters
         const lanes = [-8.5, -3.0, 3.0, 8.5];
         for (let i = 0; i < groundCount; i++) {
           const mesh = createCyberRoadster(false, false);
+          mesh.headlightCone.visible = true;
           scene.add(mesh.root);
           const laneX = lanes[i % lanes.length];
           const g = {
@@ -1008,26 +1222,28 @@
             x: laneX,
             y: 0,
             z: -28 - i * 24 - Math.random() * 14,
-            speed: laneX < 0 ? -18 : 22 + Math.random() * 10, // Left lanes oncoming!
+            speed: laneX < 0 ? -18 : 22 + Math.random() * 10,
             missed: false
           };
           if (laneX < 0) {
             mesh.bodyGroup.rotation.y = Math.PI;
+            mesh.headlightCone.rotation.z = Math.PI;
+            mesh.headlightCone.position.z = 9.4;
           }
           mesh.root.position.set(g.x, g.y, g.z);
           groundTraffic.push(g);
         }
 
-        // 3. White Saturn-Ringed Cold-Gas Orbs (Exact match to video!)
         const sphereGeo = new THREE.SphereGeometry(1.05, 14, 14);
         const ringGeo = new THREE.TorusGeometry(1.75, 0.13, 8, 28);
         ringGeo.rotateX(Math.PI / 2.2);
         const whiteOrbMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const cyanRingMat = new THREE.MeshBasicMaterial({ color: 0xbae6fd });
 
         for (let i = 0; i < 9; i++) {
           const group = new THREE.Group();
           group.add(new THREE.Mesh(sphereGeo, whiteOrbMat));
-          group.add(new THREE.Mesh(ringGeo, whiteOrbMat));
+          group.add(new THREE.Mesh(ringGeo, cyanRingMat));
           scene.add(group);
 
           const orb = {
@@ -1041,25 +1257,25 @@
         }
       }
 
-      // Start or Restart Flight
       function startNewFlight() {
         ensureAudio();
         gameState = 'playing';
         score = 0;
         nearMisses = 0;
         tricksCount = 0;
-        currentCombo = 1;
-        maxCombo = 1;
+        currentCombo = 0;
+        maxCombo = 0;
         airtimeSec = 0;
         currentFlightScore = 0;
-        ticketCooldown = 2.0;
+        ticketCooldown = 2.5;
 
-        player.x = 2.8;
-        player.y = 9.0;
-        player.z = 0;
+        player.x = 2.6;
+        player.y = 8.0;
+        player.z = 0.0;
         player.vx = 0;
-        player.vy = 2.0;
-        player.speedMph = 48;
+        player.vy = 0;
+        player.vz = 0;
+        player.speedMph = 58;
         player.coldGas = MAX_COLD_GAS;
         player.depletedLock = false;
         player.onGround = false;
@@ -1068,8 +1284,8 @@
 
         gameOverModal.classList.add('hidden');
         moreModal.classList.add('hidden');
-        populateWorld();
-        showBannerToast('zaxis', 'NO SPEED LIMIT IN THE Z-AXIS', 'Ticket cancelled. Enjoy the sky.');
+        populateTrafficWorld();
+        showBannerToast('∞', 'NO SPEED LIMIT IN THE Z-AXIS', 'Press SPACE / THRUST to go UP. Use WASD / Joystick to move!', false);
       }
 
       function triggerGameOver(reason = 'REAR-ENDED THE JAM') {
@@ -1077,15 +1293,15 @@
         playOneShotSound('crash');
         updateContinuousAudio(false, false, false, 0);
 
-        for (let i = 0; i < 30; i++) {
-          emitSmoke(
+        for (let i = 0; i < 28; i++) {
+          emitCloudSmoke(
             player.x + (Math.random() - 0.5) * 3,
             player.y + (Math.random() - 0.5) * 2,
             player.z + (Math.random() - 0.5) * 3,
             (Math.random() - 0.5) * 16,
             (Math.random() - 0.2) * 14,
             (Math.random() - 0.5) * 16,
-            1.5,
+            3.2,
             0.85,
             0xf8fafc
           );
@@ -1094,9 +1310,6 @@
         const finalVal = Math.floor(score);
         if (finalVal > bestScore) {
           bestScore = finalVal;
-          try {
-            localStorage.setItem('zaxis_best_score', String(bestScore));
-          } catch (e) {}
         }
 
         crashReasonText.textContent = reason;
@@ -1122,28 +1335,23 @@
         playOneShotSound('flip');
       }
 
-      // ==========================================
-      // MAIN PHYSICS & GAMEPLAY LOOP
-      // ==========================================
       function updateSimulation(dt) {
-        // 1. Collect Steering & Pitch from Mobile Joystick or Laptop Keyboard
         let steerX = 0;
-        let pitchY = 0;
+        let moveForwardBack = 0;
 
         if (keys.KeyA) steerX -= 1;
         if (keys.KeyD) steerX += 1;
-        if (keys.KeyW) pitchY += 1;
-        if (keys.KeyS) pitchY -= 1;
+        if (keys.KeyW) moveForwardBack += 1;
+        if (keys.KeyS) moveForwardBack -= 1;
 
         if (joystick.active) {
           steerX += joystick.x;
-          pitchY -= joystick.y; // Pushing stick up climbs/pitches up
+          moveForwardBack -= joystick.y;
         }
 
         steerX = Math.max(-1, Math.min(1, steerX));
-        pitchY = Math.max(-1, Math.min(1, pitchY));
+        moveForwardBack = Math.max(-1, Math.min(1, moveForwardBack));
 
-        // 2. Check Thrust Input (Laptop SPACEBAR or Mobile THRUST Button or Latch Mode)
         const rawThrustRequest = keys.Space || touchThrustHeld || (thrustLatchMode && thrustLatchedOn);
         const isBoosting = keys.Shift || touchBoostHeld;
         player.boosting = isBoosting;
@@ -1158,9 +1366,9 @@
         const wasOnGround = player.onGround;
         player.thrusting = false;
 
-        if (canThrust && (rawThrustRequest || isBoosting)) {
+        if (canThrust && rawThrustRequest) {
           player.thrusting = true;
-          player.coldGas = Math.max(0, player.coldGas - dt * (isBoosting ? 1.35 : 1.0));
+          player.coldGas = Math.max(0, player.coldGas - dt * (isBoosting ? 1.3 : 1.0));
           if (player.coldGas <= 0) {
             player.coldGas = 0;
             player.depletedLock = true;
@@ -1169,20 +1377,16 @@
           }
         }
 
-        // Show "NO SPEED LIMIT IN THE Z-AXIS" when lifting off from ground
         if (wasOnGround && player.thrusting && player.y < 2.5) {
-          showBannerToast('zaxis', 'NO SPEED LIMIT IN THE Z-AXIS', 'Ticket cancelled. Enjoy the sky.');
+          showBannerToast('∞', 'NO SPEED LIMIT IN THE Z-AXIS', 'Ticket cancelled. Enjoy the sky.', false);
         }
 
-        // 3. Vertical Z-Axis Altitude Physics
         if (player.thrusting) {
-          let targetVy = 9.5 + pitchY * 18.0 + (isBoosting ? 6.0 : 0);
-          if (player.y > 42 && targetVy > 0) targetVy *= 0.25;
-          player.vy += (targetVy - player.vy) * 6.0 * dt;
+          let targetVy = 17.5 + (isBoosting ? 4.5 : 0);
+          if (player.y > 42) targetVy *= 0.25;
+          player.vy += (targetVy - player.vy) * 7.0 * dt;
         } else {
-          // Gravity pulls Roadster back toward the highway
-          player.vy -= 25.0 * dt;
-          if (pitchY < -0.1) player.vy += pitchY * 14.0 * dt;
+          player.vy -= 24.0 * dt;
         }
 
         player.y += player.vy * dt;
@@ -1191,12 +1395,11 @@
           player.vy = Math.min(0, player.vy);
         }
 
-        // 4. Touching Highway Ground (Safe Landing + Bonus Points + Cold Gas Recharge!)
         if (player.y <= 0) {
-          if (!player.onGround && currentFlightScore > 40) {
+          if (!player.onGround && currentFlightScore > 35) {
             const landBonus = Math.round(currentFlightScore * 0.35) + 50;
             score += landBonus;
-            spawnCenterCallout(`LANDED +${landBonus}`, 'text-emerald-200');
+            spawnCenterCallout(`LANDED +${landBonus}`, 'text-slate-100');
             playOneShotSound('landed');
             currentFlightScore = 0;
           }
@@ -1205,56 +1408,86 @@
           player.vy = 0;
           player.onGround = true;
 
-          // Recharge Cold Gas on the road
-          player.coldGas = Math.min(MAX_COLD_GAS, player.coldGas + 7.5 * dt);
+          player.coldGas = Math.min(MAX_COLD_GAS, player.coldGas + 7.8 * dt);
           if (player.depletedLock && player.coldGas >= 2.5) {
             player.depletedLock = false;
           }
 
-          // Wrong Side of the Road Bonus (0:19 in video!)
           wrongSideCooldown = Math.max(0, wrongSideCooldown - dt);
           if (player.x < -1.0 && Math.abs(player.x) < ROAD_W / 2 && wrongSideCooldown <= 0) {
-            wrongSideCooldown = 3.2;
+            wrongSideCooldown = 3.0;
             score += 75;
             spawnCenterCallout('WRONG SIDE OF THE ROAD 😠', 'text-amber-200');
           }
 
-          // Ground Speeding Ticket (0:35 in video: "49 in a 35. Tip: there's no speed limit in the Z-axis.")
           ticketCooldown = Math.max(0, ticketCooldown - dt);
           if (player.speedMph > 38 && ticketCooldown <= 0) {
             ticketCooldown = 6.5;
             score = Math.max(0, score - 50);
             playOneShotSound('ticket');
             showBannerToast(
-              'ticket',
+              '35',
               '🚨 SPEEDING TICKET -50',
-              `${Math.round(player.speedMph)} in a 35. Tip: there's no speed limit in the Z-axis.`
+              `${Math.round(player.speedMph)} in a 35. Tip: there's no speed limit in the Z-axis.`,
+              true
             );
           }
         } else {
           player.onGround = false;
           airtimeSec += dt;
-          currentFlightScore += dt * 35;
+          currentFlightScore += dt * 38;
         }
 
-        // 5. Lateral Steering
-        const targetVx = steerX * 26.0;
+        const targetVx = steerX * 27.0;
         player.vx += (targetVx - player.vx) * 8.5 * dt;
         player.x += player.vx * dt;
         player.x = Math.max(-24, Math.min(24, player.x));
 
-        // 6. Forward Speed (Matches Video: ~48-51 MPH on road, ~64-69 in Z-Axis, 92+ on Boost)
-        const targetMph = isBoosting ? 92 : (player.onGround ? 49 : 65 + (player.y * 0.08));
-        player.speedMph += (targetMph - player.speedMph) * 3.8 * dt;
+        const targetZOffset = -moveForwardBack * 4.2 - (isBoosting ? 2.2 : 0);
+        player.vz = (targetZOffset - player.z) * 6.5;
+        player.z += player.vz * dt;
+        player.z = Math.max(-6.5, Math.min(4.5, player.z));
 
-        // 7. 360° Barrel Roll Trick Animation
+        const baseCruiseMph = player.onGround ? 46 : 64;
+        let targetMph = baseCruiseMph + moveForwardBack * 26;
+        if (isBoosting) {
+          targetMph = 136;
+        } else {
+          targetMph = Math.max(12, Math.min(92, targetMph));
+        }
+        player.speedMph += (targetMph - player.speedMph) * (isBoosting ? 5.5 : 4.2) * dt;
+
+        const targetFov = isBoosting ? 84 : (58 + Math.max(0, moveForwardBack) * 5);
+        camera.fov += (targetFov - camera.fov) * 6.5 * dt;
+        camera.updateProjectionMatrix();
+
+        const targetGridOpacity = isBoosting ? 0.42 : 0.0;
+        if (Array.isArray(warpGridHelper.material)) {
+          warpGridHelper.material.forEach(m => {
+            m.opacity += (targetGridOpacity - m.opacity) * 6.0 * dt;
+          });
+        } else if (warpGridHelper.material) {
+          warpGridHelper.material.opacity += (targetGridOpacity - warpGridHelper.material.opacity) * 6.0 * dt;
+        }
+        warpGridHelper.position.z = ((warpGridHelper.position.z + player.speedMph * 1.6 * dt) % 18) - 140;
+
+        streakMat.opacity += ((isBoosting ? 0.85 : 0.0) - streakMat.opacity) * 7.0 * dt;
+        streakLines.forEach(line => {
+          line.position.z += player.speedMph * 2.8 * dt;
+          if (line.position.z > 20) {
+            line.position.z = -200 - Math.random() * 40;
+            line.position.x = player.x + (Math.random() - 0.5) * 60;
+            line.position.y = Math.max(2, player.y + (Math.random() - 0.5) * 32);
+          }
+        });
+
         if (player.flipMode) {
-          player.flipProgress += dt * 8.0;
+          player.flipProgress += dt * 8.2;
           if (player.flipProgress >= Math.PI * 2) {
             player.flipMode = null;
             player.flipProgress = 0;
             tricksCount += 1;
-            currentCombo += 1;
+            currentCombo = Math.max(1, currentCombo + 1);
             maxCombo = Math.max(maxCombo, currentCombo);
             const flipPts = 150 * currentCombo;
             score += flipPts;
@@ -1262,45 +1495,60 @@
           }
         }
 
-        // Update Player Mesh Transform
-        const pitchAngle = player.onGround ? 0 : THREE.MathUtils.clamp(player.vy * 0.02, -0.35, 0.38);
-        const rollAngle = -steerX * 0.36 + (player.flipMode === 'right' ? -player.flipProgress : player.flipMode === 'left' ? player.flipProgress : 0);
+        const pitchAngle = player.onGround
+          ? -moveForwardBack * 0.035
+          : THREE.MathUtils.clamp(player.vy * 0.016 - moveForwardBack * 0.08 - (isBoosting ? 0.06 : 0), -0.32, 0.35);
+        const rollAngle = -steerX * 0.38 + (player.flipMode === 'right' ? -player.flipProgress : player.flipMode === 'left' ? player.flipProgress : 0);
         const yawAngle = -steerX * 0.12;
 
         playerMesh.root.position.set(player.x, player.y, player.z);
         playerMesh.bodyGroup.rotation.set(pitchAngle, yawAngle, rollAngle);
 
-        // Player Thruster Cones & Billowing White Smoke Trails
-        playerMesh.thrusterGroup.visible = player.thrusting;
-        if (playerMesh.boostJet) playerMesh.boostJet.visible = isBoosting;
+        if (playerMesh.spoilerWing) {
+          playerMesh.spoilerWing.position.y = (!player.onGround || isBoosting) ? 1.02 : 0.92;
+          playerMesh.spoilerWing.rotation.x = (!player.onGround || isBoosting) ? 0.22 : 0.0;
+        }
 
-        if (player.thrusting) {
-          const flicker = (isBoosting ? 1.3 : 1.0) * (0.85 + Math.random() * 0.3);
-          playerMesh.plumes.forEach(({ inner, outer }) => {
-            inner.scale.set(1, flicker, 1);
-            outer.scale.set(1, flicker * 1.08, 1);
+        skylineGroup.position.x = player.x * 0.25;
+
+        playerMesh.headlightCone.visible = player.y < 5.0;
+        if (playerMesh.headlightCone.visible) {
+          playerMesh.headlightCone.position.y = -player.y + 0.05;
+        }
+
+        const showJets = player.thrusting;
+        playerMesh.thrusterGroup.visible = showJets;
+        if (playerMesh.boostGroup) playerMesh.boostGroup.visible = isBoosting;
+        playerUnderLight.position.set(player.x, Math.max(0.5, player.y - 1.2), player.z);
+        playerUnderLight.intensity = (showJets || isBoosting) ? (isBoosting ? 3.6 : 2.5) : 0.35;
+
+        if (showJets) {
+          const pulse = (isBoosting ? 1.45 : 1.05) * (0.85 + Math.random() * 0.3);
+          playerMesh.plumes.forEach(({ inner, outer, ring }) => {
+            inner.scale.set(1, pulse, 1);
+            outer.scale.set(1, pulse * 1.12, 1);
+            if (ring) {
+              ring.position.y = 0.22 - (0.6 + Math.random() * 0.7);
+            }
           });
 
-          // Emit Dense 3D Smoke Puffs from 4 Corners
-          [[-1.0, 1.5], [1.0, 1.5]].forEach(([nx, nz]) => {
-            emitSmoke(
-              player.x + nx + (Math.random() - 0.5) * 0.35,
-              Math.max(0.15, player.y - 1.3),
-              player.z + nz,
-              (Math.random() - 0.5) * 2.2,
+          [[-1.08, 1.55], [1.08, 1.55]].forEach(([nx, nz]) => {
+            emitCloudSmoke(
+              player.x + nx + (Math.random() - 0.5) * 0.4,
+              Math.max(0.25, player.y - 1.2),
+              player.z + nz + 0.6,
+              (Math.random() - 0.5) * 2.5,
               -3.5 - Math.random() * 2.5,
-              player.speedMph * 0.85,
-              isBoosting ? 1.15 : 0.88,
-              0.62,
-              0xf1f5f9
+              player.speedMph * 0.9,
+              isBoosting ? 3.2 : 2.4,
+              0.68,
+              isBoosting ? 0xe0f2fe : 0xf8fafc
             );
           });
         }
 
-        // Update Continuous Synthesizer Audio
-        updateContinuousAudio(player.thrusting, isBoosting, player.onGround, player.speedMph / 90);
+        updateContinuousAudio(player.thrusting, isBoosting, player.onGround, player.speedMph / 120);
 
-        // 8. Advance World Scroll & Score
         const scrollStep = player.speedMph * 1.18 * dt;
         score += scrollStep * 0.38;
 
@@ -1311,7 +1559,6 @@
           }
         });
 
-        // 9. Update Flying Air Roadsters Swarm
         for (let i = 0; i < airRoadsters.length; i++) {
           const a = airRoadsters[i];
           a.z += (scrollStep + a.speed * 0.42 * dt);
@@ -1329,22 +1576,20 @@
             outer.scale.set(1, f, 1);
           });
 
-          // Emit Sky Smoke Trails for Air Roadsters
-          if (a.z > -175 && a.z < 12 && Math.random() < 0.52) {
-            emitSmoke(
+          if (a.z > -185 && a.z < 12 && Math.random() < 0.52) {
+            emitCloudSmoke(
               a.x + (Math.random() - 0.5) * 1.5,
               a.y - 1.5,
-              a.z + 1.8,
-              (Math.random() - 0.5) * 1.5,
+              a.z + 1.9,
+              (Math.random() - 0.5) * 1.6,
               -2.2,
-              scrollStep * 0.58,
-              0.78,
-              0.55,
-              0xcbd5e1
+              scrollStep * 0.6,
+              2.2,
+              0.62,
+              0xe2e8f0
             );
           }
 
-          // Collision Check
           const dx = Math.abs(player.x - a.x);
           const dy = Math.abs(player.y - a.y);
           const dz = Math.abs(player.z - a.z);
@@ -1354,7 +1599,6 @@
             return;
           }
 
-          // Near Miss Bonus ("INSANE MISS +50" from 0:44 in video!)
           if (!a.missed && dz < 3.6 && dx < 4.9 && dy < 3.2) {
             a.missed = true;
             nearMisses += 1;
@@ -1366,14 +1610,13 @@
           }
 
           if (a.z > 22) {
-            a.z = -265 - Math.random() * 80;
+            a.z = -275 - Math.random() * 85;
             a.baseX = (Math.random() - 0.5) * 38;
             a.baseY = 5 + Math.random() * 40;
             a.missed = false;
           }
         }
 
-        // 10. Update Ground Highway Cars
         for (let i = 0; i < groundTraffic.length; i++) {
           const g = groundTraffic[i];
           g.z += (scrollStep - g.speed * dt);
@@ -1397,12 +1640,11 @@
           }
 
           if (g.z > 24) {
-            g.z = -245 - Math.random() * 60;
+            g.z = -250 - Math.random() * 60;
             g.missed = false;
           }
         }
 
-        // 11. Update Saturn Cold-Gas Charge Orbs ("CHARGE +100" from 0:52 in video!)
         for (let i = 0; i < saturnOrbs.length; i++) {
           const orb = saturnOrbs[i];
           orb.z += scrollStep;
@@ -1416,48 +1658,46 @@
             player.depletedLock = false;
             score += 100;
             spawnCenterCallout('CHARGE +100', 'text-sky-200');
-            orb.z = -270 - Math.random() * 60;
+            orb.z = -275 - Math.random() * 60;
             orb.x = (Math.random() - 0.5) * 30;
             orb.y = 4 + Math.random() * 36;
           } else if (orb.z > 22) {
-            orb.z = -270 - Math.random() * 60;
+            orb.z = -275 - Math.random() * 60;
             orb.x = (Math.random() - 0.5) * 30;
             orb.y = 4 + Math.random() * 36;
           }
         }
 
-        // 12. Update 3D Volumetric Smoke Puffs
         for (let i = 0; i < MAX_SMOKE; i++) {
           const p = smokePool[i];
           if (!p.active) continue;
           p.life -= dt;
           if (p.life <= 0) {
             p.active = false;
-            p.mesh.visible = false;
+            p.sprite.visible = false;
             continue;
           }
-          p.mesh.position.x += p.vx * dt;
-          p.mesh.position.y += p.vy * dt;
-          p.mesh.position.z += p.vz * dt;
-          p.mesh.material.opacity = (p.life / p.maxLife) * 0.48;
-          p.mesh.scale.addScalar(dt * 2.1);
+          p.sprite.position.x += p.vx * dt;
+          p.sprite.position.y += p.vy * dt;
+          p.sprite.position.z += p.vz * dt;
+          p.sprite.material.opacity = (p.life / p.maxLife) * 0.55;
+          const s = p.sprite.scale.x + dt * 4.2;
+          p.sprite.scale.set(s, s, 1);
         }
 
-        // 13. Dynamic 3D Chase Camera (Pulls back slightly at high altitude like the video)
         const camX = player.x * 0.65;
         const camY = player.y + 3.8 + (player.y * 0.08);
-        const camZ = isBoosting ? 15.2 : 13.5;
+        const camZ = isBoosting ? 15.8 : 13.5;
         camera.position.x += (camX - camera.position.x) * 7.5 * dt;
         camera.position.y += (camY - camera.position.y) * 6.5 * dt;
         camera.position.z += (camZ - camera.position.z) * 6.5 * dt;
-        camera.lookAt(player.x * 0.38, player.y + 1.0, -34);
+        camera.lookAt(player.x * 0.38, player.y + 1.0, -36);
 
-        // 14. Sync Top Tesla HUD
         const gasPct = Math.max(0, Math.min(100, (player.coldGas / MAX_COLD_GAS) * 100));
         coldGasBar.style.height = `${gasPct}%`;
         coldGasBar.className = player.coldGas < 4.0
           ? 'w-full rounded-full bg-rose-400 shadow-[0_0_12px_#fb7185] transition-all duration-75'
-          : 'w-full rounded-full bg-sky-200 shadow-[0_0_12px_#bae6fd] transition-all duration-75';
+          : 'w-full rounded-full bg-sky-300 shadow-[0_0_12px_#38bdf8] transition-all duration-75';
 
         const altMeters = Math.round(player.y);
         scoreText.textContent = Math.floor(score).toLocaleString();
@@ -1469,7 +1709,7 @@
           speedLimitBox.className = 'speed-sign-zaxis rounded-lg w-12 h-15 sm:w-14 sm:h-18 px-1.5 py-1.5 flex flex-col items-center justify-center text-center transition-all';
           speedLimitVal.textContent = '∞';
           gearD.className = 'text-slate-500 transition-colors';
-          gearZ.className = 'text-white font-black drop-shadow-[0_0_8px_rgba(255,255,255,0.9)] transition-colors';
+          gearZ.className = 'text-white font-black drop-shadow-[0_0_8px_rgba(255,255,255,0.95)] transition-colors';
         } else {
           axisModeText.textContent = 'MPH';
           speedLimitBox.className = 'speed-sign-ground rounded-lg w-12 h-15 sm:w-14 sm:h-18 px-1.5 py-1.5 flex flex-col items-center justify-center text-center transition-all';
@@ -1479,11 +1719,6 @@
         }
       }
 
-      // ==========================================
-      // INPUT LISTENERS (MOBILE JOYSTICK + THRUST + LAPTOP SPACEBAR)
-      // ==========================================
-
-      // 1. Mobile Virtual Joystick
       let stickPointerId = null;
       const maxStickRadius = 36;
 
@@ -1529,7 +1764,6 @@
         if (e.pointerId === stickPointerId) releaseJoystick();
       });
 
-      // 2. Primary THRUST Button (Hold to Thrust, or Tap if Latch Mode enabled)
       btnThrust.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         ensureAudio();
@@ -1551,10 +1785,10 @@
       btnThrust.addEventListener('pointerleave', endTouchThrust);
       btnThrust.addEventListener('pointercancel', endTouchThrust);
 
-      // 3. BOOST Button
       btnBoost.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         ensureAudio();
+        playOneShotSound('warp');
         touchBoostHeld = true;
         btnBoost.classList.add('boost-active');
       });
@@ -1567,13 +1801,11 @@
       btnBoost.addEventListener('pointerleave', endTouchBoost);
       btnBoost.addEventListener('pointercancel', endTouchBoost);
 
-      // 4. 360° Flip Button
       btnFlip.addEventListener('click', (e) => {
         e.preventDefault();
         trigger360Flip('right');
       });
 
-      // 5. MORE Settings Drawer
       btnMore.addEventListener('click', (e) => {
         e.preventDefault();
         ensureAudio();
@@ -1617,19 +1849,18 @@
         difficulty = 'easy';
         btnDiffEasy.className = 'px-2.5 py-1 rounded-md font-bold text-[10px] bg-emerald-500/25 text-emerald-300 border border-emerald-400/50';
         btnDiffHard.className = 'px-2.5 py-1 rounded-md font-bold text-[10px] bg-slate-800 text-slate-400 border border-transparent';
-        populateWorld();
+        populateTrafficWorld();
       });
 
       btnDiffHard.addEventListener('click', () => {
         difficulty = 'hard';
         btnDiffHard.className = 'px-2.5 py-1 rounded-md font-bold text-[10px] bg-rose-500/25 text-rose-300 border border-rose-400/50';
         btnDiffEasy.className = 'px-2.5 py-1 rounded-md font-bold text-[10px] bg-slate-800 text-slate-400 border border-transparent';
-        populateWorld();
+        populateTrafficWorld();
       });
 
       btnDriveAgain.addEventListener('click', () => startNewFlight());
 
-      // 6. Laptop Keyboard Controls (SPACEBAR = Thrust, WASD / Arrows = Steer, Shift = Boost, Q/E = Flip)
       window.addEventListener('keydown', (e) => {
         ensureAudio();
         if (gameState === 'gameover' && (e.code === 'Space' || e.code === 'Enter')) {
@@ -1650,6 +1881,7 @@
         if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.KeyA = true;
         if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.KeyD = true;
         if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+          if (!keys.Shift) playOneShotSound('warp');
           keys.Shift = true;
           btnBoost.classList.add('boost-active');
         }
@@ -1669,18 +1901,17 @@
         }
       });
 
-      // Unlock Web Audio on first canvas tap
       canvas.addEventListener('pointerdown', () => ensureAudio());
 
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+      function handleResize() {
+        const size = getViewport();
+        camera.aspect = size.w / size.h;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
+        renderer.setSize(size.w, size.h);
+      }
+      window.addEventListener('resize', handleResize);
 
-      // ==========================================
-      // RENDER LOOP
-      // ==========================================
+      startNewFlight();
       let lastTime = performance.now();
       function animate(now) {
         const dt = Math.min(0.05, (now - lastTime) / 1000);
@@ -1693,12 +1924,7 @@
         renderer.render(scene, camera);
         requestAnimationFrame(animate);
       }
-
-      window.onload = () => {
-        startNewFlight();
-        lastTime = performance.now();
-        requestAnimationFrame(animate);
-      };
+      requestAnimationFrame(animate);
     })();
   </script>
 </body>
